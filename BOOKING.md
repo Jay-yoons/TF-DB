@@ -73,37 +73,26 @@ ALTER TABLE BOOKING_STATE_CODE
     ADD CONSTRAINT BOOKING_STATE_CODE_PK PRIMARY KEY ( BOOKING_STATE_CODE ) ;
 
 ------------------------------------------------------------------------------
+우선 CDB에서 DB LINK를 생성 할 타 PDB에서 VIEW 생성을 허용 해줘야한다.
+CDB 환경 (컨테이너 DB)에서 PDB 간 DB LINK를 허용하려면 아래 설정 필요:
 
-CREATE TABLE STORES_VIEW 
-    ( 
-     STORE_ID       VARCHAR2 (20 CHAR)  NOT NULL , 
-     STORE_NAME     VARCHAR2 (50 CHAR)  NOT NULL , 
-     CARTEGORY_CODE INTEGER  NOT NULL , 
-     MENU_ID        INTEGER  NOT NULL , 
-     LOCATION       VARCHAR2 (50 CHAR)  NOT NULL , 
-     SEAT_NUM       INTEGER DEFAULT 5  NOT NULL , 
-     INUSING_SEAT   INTEGER , 
-     SERVICE_TIME   DATE 
-    ) 
-;
+LOCAL_LINKS=ALLOWED 또는 COMMON_USER 사용
 
-ALTER TABLE STORES_VIEW 
-    ADD CONSTRAINT STORES_PK PRIMARY KEY ( STORE_ID ) ;
+공통 유저 또는 각 PDB에서 접속 가능한 전용 유저 필요
 
-
-----------------------------------------------------------------------------------
-
-CREATE TABLE USERS_VIEW 
-    ( 
-     USER_ID      VARCHAR2 (15 CHAR)  NOT NULL , 
-     USER_NAME    VARCHAR2 (20 CHAR)  NOT NULL , 
-     LOCATION     VARCHAR2 (50 CHAR) , 
-     PHONE_NUMBER VARCHAR2 (20 CHAR)  NOT NULL 
-    ) 
-;
+NETWORK SERVICE 이름이 각 PDB에 대해 정의돼 있어야 함 (tnsnames.ora or EZCONNECT)
 
 ALTER TABLE USERS_VIEW 
     ADD CONSTRAINT USERS_PK PRIMARY KEY ( USER_ID ) ;
 
-
+그 후 아래 명령을 통해 뷰를 만들어 무결성을 지키는것이 가능하다.
+-----------------------------------------------------------------
+CREATE DATABASE LINK USERS_PDB_LINK
+CONNECT TO users IDENTIFIED BY "users_password"
+USING 'PDB_USER';
+-----------------------------------------------------------------------
+-- STORE DB LINK (예: STORES_PDB_LINK)
+CREATE DATABASE LINK STORES_PDB_LINK
+CONNECT TO stores IDENTIFIED BY "stores_password"
+USING 'PDB_STORE';
 
