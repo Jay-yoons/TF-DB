@@ -1,0 +1,75 @@
+CREATE TABLE STORES 
+    ( 
+     STORE_ID       VARCHAR2 (20 CHAR)  NOT NULL , 
+     STORE_NAME     VARCHAR2 (50 CHAR)  NOT NULL , 
+     CARTEGORY_CODE INTEGER  NOT NULL , 
+     MENU_ID        INTEGER  NOT NULL , 
+     LOCATION       VARCHAR2 (50 CHAR)  NOT NULL , 
+     SEAT_NUM       INTEGER DEFAULT 5  NOT NULL , 
+     INUSING_SEAT   INTEGER , 
+     SERVICE_TIME   DATE 
+    ) 
+;
+
+ALTER TABLE STORES 
+    ADD CONSTRAINT STORES_PK PRIMARY KEY ( STORE_ID ) ;
+
+ALTER TABLE STORES 
+    ADD CONSTRAINT STORES_CATEGORY_FK FOREIGN KEY 
+    ( 
+     CARTEGORY_CODE
+    ) 
+    REFERENCES CATEGORY 
+    ( 
+     CATEGORY_CODE
+    ) 
+;
+
+ALTER TABLE STORES 
+    ADD CONSTRAINT STORES_MENU_FK FOREIGN KEY 
+    ( 
+     MENU_ID
+    ) 
+    REFERENCES MENU 
+    ( 
+     MENU_ID
+    ) 
+;
+
+
+-----------------------------------------------------------------------------
+
+CREATE TABLE CATEGORY 
+    ( 
+     CATEGORY_CODE INTEGER  NOT NULL , 
+     CATEGORY_NAME VARCHAR2 (20 CHAR)  NOT NULL 
+    ) 
+;
+
+ALTER TABLE CATEGORY 
+    ADD CONSTRAINT CATEGORY_PK PRIMARY KEY ( CATEGORY_CODE ) ;
+
+-------------------------------------------------------------------------------
+
+CREATE TABLE MENU 
+    ( 
+     MENU_ID   INTEGER  NOT NULL , 
+     STORE_ID  VARCHAR2 (20)  NOT NULL , 
+     MENU_NAME VARCHAR2 (30 CHAR)  NOT NULL , 
+     PRICE     INTEGER  NOT NULL 
+    ) 
+;
+
+ALTER TABLE MENU 
+    ADD CONSTRAINT MENU_PK PRIMARY KEY ( MENU_ID ) ;
+
+ALTER TABLE MENU 
+    ADD CONSTRAINT MENU_STORES_FK FOREIGN KEY 
+    ( 
+     STORE_ID
+    ) 
+    REFERENCES STORES 
+    ( 
+     STORE_ID
+    ) 
+;
