@@ -1,0 +1,11 @@
+CREATE TABLE TABLE_1 
+    ( 
+     STORE_ID VARCHAR2 (20) , 
+     USER_ID  VARCHAR2 (15)  NOT NULL , 
+     COMMIT   VARCHAR2 (100 CHAR) , 
+     RATIO    INTEGER 
+    ) 
+;
+
+
+
