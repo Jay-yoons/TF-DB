@@ -22,3 +22,4 @@ RATIO: 평점 (1~10점)
 REVIEW_ID: REVIEW의 주식별자
 CATEGORY_CODE: 카테고리 모아두는 코드
 CATEGORY_NAME: 카테고리 이름
+PASSWORD: 유저 비밀번호
