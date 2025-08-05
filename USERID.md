@@ -1,14 +1,16 @@
 CREATE TABLE USERS 
     ( 
-     USER_ID      VARCHAR2 (15 CHAR)  NOT NULL , 
-     USER_NAME    VARCHAR2 (20 CHAR)  NOT NULL , 
-     USER_LOCATION     VARCHAR2 (50 CHAR) , 
-     PHONE_NUMBER VARCHAR2 (20 CHAR)  NOT NULL 
+     USER_ID       VARCHAR2 (15 CHAR)  NOT NULL , 
+     USER_NAME     VARCHAR2 (20 CHAR)  NOT NULL , 
+     PHONE_NUMBER  VARCHAR2 (20 CHAR)  NOT NULL , 
+     USER_LOCATION VARCHAR2 (50 CHAR) , 
+     PASSWORD      VARCHAR2 (255 CHAR)  NOT NULL 
     ) 
 ;
 
 ALTER TABLE USERS 
     ADD CONSTRAINT USERS_PK PRIMARY KEY ( USER_ID ) ;
+
 
 -------------------------------------------------------------------------
 
