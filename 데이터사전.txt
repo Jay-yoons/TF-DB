@@ -1,0 +1,24 @@
+데이터 사전
+STORE_ID: 가게의 주식별자이자 ID
+STORE_NAME: 가게 이름
+USER_ID: 사용자의 주식별자이자 ID
+FAV_STORE_ID: 관심가게의 주식별자 증감연산으로 표현
+USER_NAME: 사용자 이름
+PHONE_NUMBER: 휴대전화의 번호
+USER_LOCATION: 사용자 주소
+BOOKING_NUM: 예약의 주식별자 증감연산으로 표현
+BOOKING_DATE: 예약 날짜
+BOOKING_STATE_CODE: 예약의 상태 코드
+STATE_NAME: 예약 상태 이름
+COUNT: 예약한 인원 수
+STORE_LOCATION: 가게 위치
+SEAT_NUM: 전체 좌석 수
+IN_USING_SEAT: 사용중인 좌석 수
+SERVICE_TIME: 영업시간
+MENU_NAME: 메뉴 이름
+PRICE: 메뉴 가격
+COMMENT: 후기 내용
+RATIO: 평점 (1~10점)
+REVIEW_ID: REVIEW의 주식별자
+CATEGORY_CODE: 카테고리 모아두는 코드
+CATEGORY_NAME: 카테고리 이름
