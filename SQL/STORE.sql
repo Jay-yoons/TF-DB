@@ -1,46 +1,16 @@
-CREATE TABLE CATEGORY 
-    ( 
-     CATEGORY_CODE INTEGER  NOT NULL , 
-     CATEGORY_NAME VARCHAR2 (20 CHAR)  NOT NULL 
-    ) 
-;
-
-ALTER TABLE CATEGORY 
-    ADD CONSTRAINT CATEGORY_PK PRIMARY KEY ( CATEGORY_CODE ) ;
-
-CREATE TABLE MENU 
-    ( 
-     STORE_ID  VARCHAR2 (20 CHAR)  NOT NULL , 
-     MENU_NAME VARCHAR2 (30 CHAR)  NOT NULL , 
-     PRICE     INTEGER  NOT NULL 
-    ) 
-;
-
 CREATE TABLE STORES 
     ( 
-     STORE_ID      VARCHAR2 (20 CHAR)  NOT NULL , 
-     STORE_NAME    VARCHAR2 (50 CHAR)  NOT NULL , 
-     CATEGORY_CODE INTEGER  NOT NULL , 
-     STORE_LOCATION      VARCHAR2 (50 CHAR)  NOT NULL , 
-     SEAT_NUM      INTEGER  NOT NULL , 
-     IN_USING_SEAT INTEGER  NOT NULL , 
-     SERVICE_TIME  DATE 
+     STORE_ID       VARCHAR2 (20 CHAR)  NOT NULL , 
+     STORE_NAME     VARCHAR2 (50 CHAR)  NOT NULL , 
+     CATEGORY_CODE  INTEGER  NOT NULL , 
+     STORE_LOCATION VARCHAR2 (50 CHAR)  NOT NULL , 
+     SEAT_NUM       INTEGER  NOT NULL , 
+     SERVICE_TIME   DATE 
     ) 
 ;
 
 ALTER TABLE STORES 
     ADD CONSTRAINT STORES_PK PRIMARY KEY ( STORE_ID ) ;
-
-ALTER TABLE MENU 
-    ADD CONSTRAINT MENU_STORES_FK FOREIGN KEY 
-    ( 
-     STORE_ID
-    ) 
-    REFERENCES STORES 
-    ( 
-     STORE_ID
-    ) 
-;
 
 ALTER TABLE STORES 
     ADD CONSTRAINT STORES_CATEGORY_FK FOREIGN KEY 
@@ -53,8 +23,18 @@ ALTER TABLE STORES
     ) 
 ;
 
+---------------------------------------------------------------------------
+CREATE TABLE CATEGORY 
+    ( 
+     CATEGORY_CODE INTEGER  NOT NULL , 
+     CATEGORY_NAME VARCHAR2 (20 CHAR)  NOT NULL 
+    ) 
+;
 
-----------------------------------------------------------------------------------
+ALTER TABLE CATEGORY 
+    ADD CONSTRAINT CATEGORY_PK PRIMARY KEY ( CATEGORY_CODE ) ;
+
+------------------------------------------------------------------------------
 CREATE TABLE MENU 
     ( 
      STORE_ID  VARCHAR2 (20 CHAR)  NOT NULL , 
@@ -73,15 +53,24 @@ ALTER TABLE MENU
      STORE_ID
     ) 
 ;
-
--------------------------------------------------------------------------------------------
-CREATE TABLE CATEGORY 
+------------------------------------------------------------------------------------
+CREATE TABLE STORE_SEAT 
     ( 
-     CATEGORY_CODE INTEGER  NOT NULL , 
-     CATEGORY_NAME VARCHAR2 (20 CHAR)  NOT NULL 
+     STORE_ID      VARCHAR2 (20 CHAR)  NOT NULL , 
+     IN_USING_SEAT INTEGER  NOT NULL 
     ) 
 ;
 
-ALTER TABLE CATEGORY 
-    ADD CONSTRAINT CATEGORY_PK PRIMARY KEY ( CATEGORY_CODE ) ;
+ALTER TABLE STORE_SEAT 
+    ADD CONSTRAINT STORE_SEAT_PK PRIMARY KEY ( STORE_ID ) ;
 
+ALTER TABLE STORE_SEAT 
+    ADD CONSTRAINT STORE_SEAT_STORES_FK FOREIGN KEY 
+    ( 
+     STORE_ID
+    ) 
+    REFERENCES STORES 
+    ( 
+     STORE_ID
+    ) 
+;
