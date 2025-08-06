@@ -52,6 +52,7 @@ ALTER TABLE MENU
     ( 
      STORE_ID
     ) 
+    ON DELETE CASCADE 
 ;
 ------------------------------------------------------------------------------------
 CREATE TABLE STORE_SEAT 
@@ -73,4 +74,6 @@ ALTER TABLE STORE_SEAT
     ( 
      STORE_ID
     ) 
+    ON DELETE CASCADE 
 ;
+
