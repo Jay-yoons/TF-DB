@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>레스토랑 목록 - 레스토랑 예약 시스템</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .search-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+        }
+        .restaurant-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .restaurant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .btn-custom:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .search-input {
+            border-radius: 25px;
+            border: none;
+            padding: 12px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .filter-btn {
+            border-radius: 20px;
+            padding: 8px 20px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-utensils me-2"></i>레스토랑 예약
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">홈</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/restaurants">레스토랑</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reservations">예약</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav" id="authNav">
+                    <!-- 로그인 상태에 따라 동적으로 변경됨 -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control search-input" id="searchInput" 
+                               placeholder="레스토랑 이름이나 주소를 입력하세요..." 
+                               aria-label="레스토랑 검색">
+                        <button class="btn btn-light" type="button" id="searchBtn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-outline-light filter-btn" id="allBtn">
+                            <i class="fas fa-list me-1"></i>전체 보기
+                        </button>
+                        <button class="btn btn-outline-light filter-btn" id="openBtn">
+                            <i class="fas fa-check me-1"></i>영업중
+                        </button>
+                        <!-- 레스토랑 추가 버튼 제거 (관리자 기능) -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Restaurant List Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row align-items-center mb-4">
+                <div class="col-md-6">
+                    <h2 class="mb-1">레스토랑 목록</h2>
+                    <p class="text-muted mb-0" id="restaurantCount">총 <span id="count">0</span>개의 레스토랑</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-outline-secondary btn-sm me-2" id="sortByName">
+                        <i class="fas fa-sort-alpha-down me-1"></i>이름순
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" id="sortByCapacity">
+                        <i class="fas fa-users me-1"></i>수용인원순
+                    </button>
+                </div>
+            </div>
+
+            <div class="row" id="restaurantList">
+                <!-- 레스토랑 카드들이 여기에 동적으로 로드됩니다 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2025 Team F.O.G. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let restaurants = [];
+        let filteredRestaurants = [];
+
+        // 페이지 로드 시 레스토랑 데이터 로드
+        let currentUser = null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            loadRestaurants();
+        });
+
+        // 로그인 상태 확인
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/me');
+                if (response.ok) {
+                    currentUser = await response.json();
+                    updateNavigationForLoggedInUser(currentUser);
+                } else {
+                    updateNavigationForGuest();
+                }
+            } catch (error) {
+                console.error('로그인 상태 확인 실패:', error);
+                updateNavigationForGuest();
+            }
+        }
+
+        // 로그인된 사용자 네비게이션
+        function updateNavigationForLoggedInUser(user) {
+            const authNav = document.getElementById('authNav');
+            authNav.innerHTML = `
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user me-2"></i>${user.userName}
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/mypage">마이페이지</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                                                 <li><a class="dropdown-item" href="/logout-page">로그아웃</a></li>
+                    </ul>
+                </li>
+            `;
+        }
+
+        // 게스트 네비게이션
+        function updateNavigationForGuest() {
+            const authNav = document.getElementById('authNav');
+            authNav.innerHTML = `
+                <li class="nav-item">
+                    <a class="nav-link" href="/login-page">로그인/회원가입</a>
+                </li>
+            `;
+        }
+
+        // 레스토랑 데이터 로드
+        function loadRestaurants() {
+            fetch('/api/restaurants')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('레스토랑 데이터를 불러오는데 실패했습니다.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    restaurants = data;
+                    filteredRestaurants = [...restaurants];
+                    displayRestaurants();
+                    updateCount();
+                })
+                .catch(error => {
+                    console.error('API 오류:', error);
+                    // 샘플 데이터로 폴백
+                    loadSampleRestaurants();
+                });
+        }
+
+        // 샘플 레스토랑 데이터 로드
+        function loadSampleRestaurants() {
+            restaurants = [
+                {
+                    storeId: 1,
+                    storeName: "강남 스테이크하우스",
+                    storeLocation: "서울시 강남구 테헤란로 123",
+                    seatNum: 10,
+                    inUsingSeat: 0,
+                    serviceTime: "11:00-22:00",
+                    phone: "02-1234-5678",
+                    isActive: true
+                },
+                {
+                    storeId: 2,
+                    storeName: "서초 이탈리안 레스토랑",
+                    storeLocation: "서울시 서초구 강남대로 456",
+                    seatNum: 10,
+                    inUsingSeat: 0,
+                    serviceTime: "12:00-21:00",
+                    phone: "02-2345-6789",
+                    isActive: true
+                },
+                {
+                    storeId: 3,
+                    storeName: "송파 한식당",
+                    storeLocation: "서울시 송파구 올림픽로 789",
+                    seatNum: 10,
+                    inUsingSeat: 0,
+                    serviceTime: "10:00-21:00",
+                    phone: "02-3456-7890",
+                    isActive: true
+                },
+                {
+                    storeId: 4,
+                    storeName: "마포 카페",
+                    storeLocation: "서울시 마포구 홍대로 321",
+                    seatNum: 10,
+                    inUsingSeat: 0,
+                    serviceTime: "08:00-20:00",
+                    phone: "02-4567-8901",
+                    isActive: true
+                },
+                {
+                    storeId: 5,
+                    storeName: "영등포 중식당",
+                    storeLocation: "서울시 영등포구 여의대로 654",
+                    seatNum: 10,
+                    inUsingSeat: 0,
+                    serviceTime: "11:30-22:30",
+                    phone: "02-5678-9012",
+                    isActive: true
+                }
+            ];
+            filteredRestaurants = [...restaurants];
+            displayRestaurants();
+            updateCount();
+        }
+
+        // 레스토랑 목록 표시
+        function displayRestaurants() {
+            const container = document.getElementById('restaurantList');
+            if (!container) return;
+
+            if (filteredRestaurants.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">검색 결과가 없습니다</h4>
+                        <p class="text-muted">다른 검색어를 시도해보세요.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredRestaurants.map(restaurant => `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card restaurant-card h-100 position-relative">
+                        <div class="status-badge">
+                            <span class="badge ${restaurant.isActive ? 'bg-success' : 'bg-secondary'}">
+                                ${restaurant.isActive ? '영업중' : '휴업'}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">${restaurant.storeName || '이름 없음'}</h5>
+                            <p class="card-text text-muted">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                ${restaurant.storeLocation || '주소 정보 없음'}
+                            </p>
+                            <p class="card-text small">
+                                <i class="fas fa-clock me-2"></i>
+                                ${restaurant.serviceTime || '영업시간 정보 없음'}
+                            </p>
+                            <p class="card-text small">
+                                <i class="fas fa-phone me-2"></i>
+                                ${restaurant.phone || '전화번호 없음'}
+                            </p>
+                            <p class="card-text small">
+                                <i class="fas fa-users me-2"></i>
+                                수용인원: ${restaurant.seatNum || 0}명
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-outline-primary btn-sm" onclick="viewDetails(${restaurant.storeId})">
+                                    <i class="fas fa-eye me-1"></i>상세보기
+                                </button>
+                                <button class="btn btn-custom btn-sm" onclick="makeBooking(${restaurant.storeId})">
+                                    <i class="fas fa-calendar-plus me-1"></i>예약하기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 레스토랑 개수 업데이트
+        function updateCount() {
+            const countElement = document.getElementById('count');
+            if (countElement) {
+                countElement.textContent = filteredRestaurants.length;
+            }
+        }
+
+        // 검색 기능
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredRestaurants = restaurants.filter(restaurant => 
+                (restaurant.storeName && restaurant.storeName.toLowerCase().includes(searchTerm)) ||
+                (restaurant.storeLocation && restaurant.storeLocation.toLowerCase().includes(searchTerm))
+            );
+            displayRestaurants();
+            updateCount();
+        });
+
+        // 검색 입력 필드에서 Enter 키 처리
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchBtn').click();
+            }
+        });
+
+        // 필터 버튼 이벤트
+        document.getElementById('allBtn').addEventListener('click', function() {
+            filteredRestaurants = [...restaurants];
+            displayRestaurants();
+            updateCount();
+        });
+
+        document.getElementById('openBtn').addEventListener('click', function() {
+            filteredRestaurants = restaurants.filter(restaurant => restaurant.isActive);
+            displayRestaurants();
+            updateCount();
+        });
+
+        // 레스토랑 추가 버튼 이벤트 리스너 제거 (관리자 기능)
+
+        // 정렬 기능
+        document.getElementById('sortByName').addEventListener('click', function() {
+            filteredRestaurants.sort((a, b) => (a.storeName || '').localeCompare(b.storeName || ''));
+            displayRestaurants();
+        });
+
+        document.getElementById('sortByCapacity').addEventListener('click', function() {
+            filteredRestaurants.sort((a, b) => (b.seatNum || 0) - (a.seatNum || 0));
+            displayRestaurants();
+        });
+
+        // 상세보기 함수
+        function viewDetails(storeId) {
+            const restaurant = restaurants.find(r => r.storeId === storeId);
+            if (restaurant) {
+                alert(`${restaurant.storeName}\n주소: ${restaurant.storeLocation}\n영업시간: ${restaurant.serviceTime}\n전화번호: ${restaurant.phone}\n수용인원: ${restaurant.seatNum}명`);
+            }
+        }
+
+        // 예약하기 함수
+        function makeBooking(storeId) {
+            const restaurant = restaurants.find(r => r.storeId === storeId);
+            if (restaurant) {
+                if (!currentUser) {
+                    alert('예약을 하려면 로그인이 필요합니다.');
+                    window.location.href = '/login-page';
+                    return;
+                }
+                
+                if (confirm(`${restaurant.storeName}에 예약하시겠습니까?`)) {
+                    // 예약 모달 또는 예약 페이지로 이동
+                    showReservationModal(restaurant);
+                }
+            }
+        }
+
+        // 예약 모달 표시
+        function showReservationModal(restaurant) {
+            const modalHtml = `
+                <div class="modal fade" id="reservationModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">${restaurant.storeName} 예약</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="reservationForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">예약 날짜</label>
+                                                <input type="date" class="form-control" id="bookingDate" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">예약 시간</label>
+                                                <select class="form-select" id="bookingTime" required>
+                                                    <option value="">시간 선택</option>
+                                                    <option value="11:00">11:00</option>
+                                                    <option value="12:00">12:00</option>
+                                                    <option value="13:00">13:00</option>
+                                                    <option value="18:00">18:00</option>
+                                                    <option value="19:00">19:00</option>
+                                                    <option value="20:00">20:00</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">예약 인원</label>
+                                                <select class="form-select" id="bookingPeople" required>
+                                                    <option value="">인원 선택</option>
+                                                    <option value="1">1명</option>
+                                                    <option value="2">2명</option>
+                                                    <option value="3">3명</option>
+                                                    <option value="4">4명</option>
+                                                    <option value="5">5명</option>
+                                                    <option value="6">6명</option>
+                                                    <option value="7">7명</option>
+                                                    <option value="8">8명</option>
+                                                    <option value="9">9명</option>
+                                                    <option value="10">10명</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">요청사항</label>
+                                                <textarea class="form-control" id="bookingRequest" rows="3" placeholder="특별한 요청사항이 있으시면 입력해주세요"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                                <button type="button" class="btn btn-primary" onclick="submitReservation('${restaurant.storeId}')">예약하기</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 기존 모달이 있다면 제거
+            const existingModal = document.getElementById('reservationModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // 새 모달 추가
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // 모달 표시
+            const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
+            modal.show();
+        }
+
+        // 예약 제출
+        async function submitReservation(storeId) {
+            const bookingDate = document.getElementById('bookingDate').value;
+            const bookingTime = document.getElementById('bookingTime').value;
+            const bookingPeople = document.getElementById('bookingPeople').value;
+            const bookingRequest = document.getElementById('bookingRequest').value;
+
+            if (!bookingDate || !bookingTime || !bookingPeople) {
+                alert('필수 정보를 모두 입력해주세요.');
+                return;
+            }
+
+            const reservationData = {
+                storeId: storeId,
+                userId: currentUser.userId,
+                bookingDate: bookingDate,
+                bookingTime: bookingTime,
+                bookingPeople: parseInt(bookingPeople),
+                bookingRequest: bookingRequest || '',
+                bookingStateCode: 1 // 대기중 상태
+            };
+
+            try {
+                const response = await fetch('/api/reservations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(reservationData)
+                });
+
+                if (response.ok) {
+                    alert('예약이 성공적으로 완료되었습니다!');
+                    bootstrap.Modal.getInstance(document.getElementById('reservationModal')).hide();
+                    // 예약 목록 페이지로 이동
+                    window.location.href = '/reservations';
+                } else {
+                    alert('예약에 실패했습니다. 다시 시도해주세요.');
+                }
+            } catch (error) {
+                console.error('예약 제출 실패:', error);
+                alert('예약 중 오류가 발생했습니다.');
+            }
+        }
+    </script>
+</body>
+</html> 
