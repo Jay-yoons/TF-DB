@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - 레스토랑 예약 시스템</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">🍽️ 레스토랑 예약</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/restaurants">레스토랑 목록</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reservations">예약 관리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/mypage">마이페이지</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item" id="loginSection">
+                        <a class="nav-link" href="/login">로그인</a>
+                    </li>
+                    <li class="nav-item" id="signupSection">
+                        <a class="nav-link" href="/signup">회원가입</a>
+                    </li>
+                    <li class="nav-item" id="logoutSection" style="display: none;">
+                        <a class="nav-link" href="/logout-page">로그아웃</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">👤 마이페이지</h2>
+                
+                <!-- 사용자 정보 -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">사용자 정보</h5>
+                            </div>
+                            <div class="card-body" id="userInfo">
+                                <!-- 사용자 정보가 여기에 동적으로 로드됩니다 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">최근 예약</h5>
+                            </div>
+                            <div class="card-body" id="recentReservations">
+                                <!-- 최근 예약이 여기에 동적으로 로드됩니다 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 통계 정보 -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">예약 통계</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="reservationStats">
+                                    <!-- 통계 정보가 여기에 동적으로 로드됩니다 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 로그인 상태 확인
+        function checkLoginStatus() {
+            fetch('/me')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else if (response.status === 401) {
+                        console.log('로그인되지 않음');
+                        return null;
+                    } else {
+                        throw new Error('로그인 상태 확인 실패');
+                    }
+                })
+                .then(user => {
+                    if (user) {
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('signupSection').style.display = 'none';
+                        document.getElementById('logoutSection').style.display = 'block';
+                        loadUserInfo(user);
+                        loadRecentReservations();
+                        loadReservationStats();
+                    } else {
+                        document.getElementById('loginSection').style.display = 'block';
+                        document.getElementById('signupSection').style.display = 'block';
+                        document.getElementById('logoutSection').style.display = 'none';
+                        document.getElementById('userInfo').innerHTML = '<div class="alert alert-info">로그인이 필요합니다.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('로그인 상태 확인 오류:', error);
+                });
+        }
+
+        // 사용자 정보 로드
+        function loadUserInfo(user) {
+            const userInfo = document.getElementById('userInfo');
+            userInfo.innerHTML = `
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>아이디:</strong></p>
+                        <p><strong>이름:</strong></p>
+                        <p><strong>전화번호:</strong></p>
+                        <p><strong>주소:</strong></p>
+                    </div>
+                    <div class="col-6">
+                        <p>${user.userId}</p>
+                        <p>${user.userName}</p>
+                        <p>${user.phoneNumber}</p>
+                        <p>${user.userLocation || '미입력'}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 최근 예약 로드
+        function loadRecentReservations() {
+            fetch('/api/reservations')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('예약 목록 로드 실패');
+                    }
+                })
+                .then(reservations => {
+                    const recentReservations = document.getElementById('recentReservations');
+                    
+                    if (reservations.length === 0) {
+                        recentReservations.innerHTML = '<p class="text-muted">예약 내역이 없습니다.</p>';
+                        return;
+                    }
+
+                    // 최근 3개 예약만 표시
+                    const recent = reservations.slice(0, 3);
+                    let html = '';
+                    
+                    recent.forEach(reservation => {
+                        const statusClass = reservation.bookingStateCode === 'CONFIRMED' ? 'text-success' : 'text-danger';
+                        const statusText = reservation.bookingStateCode === 'CONFIRMED' ? '확정' : '취소';
+                        
+                        html += `
+                            <div class="border-bottom pb-2 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>${getRestaurantName(reservation.storeId)}</strong>
+                                    <span class="${statusClass}">${statusText}</span>
+                                </div>
+                                <small class="text-muted">
+                                    ${formatDate(reservation.bookingDate)} | ${reservation.count}명
+                                </small>
+                            </div>
+                        `;
+                    });
+                    
+                    recentReservations.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('최근 예약 로드 오류:', error);
+                    document.getElementById('recentReservations').innerHTML = '<p class="text-muted">예약 정보를 불러올 수 없습니다.</p>';
+                });
+        }
+
+        // 예약 통계 로드
+        function loadReservationStats() {
+            fetch('/api/reservations')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('예약 목록 로드 실패');
+                    }
+                })
+                .then(reservations => {
+                    const stats = document.getElementById('reservationStats');
+                    
+                    const totalReservations = reservations.length;
+                    const confirmedReservations = reservations.filter(r => r.bookingStateCode === 'CONFIRMED').length;
+                    const cancelledReservations = reservations.filter(r => r.bookingStateCode === 'CANCELLED').length;
+                    
+                    stats.innerHTML = `
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-primary">${totalReservations}</h4>
+                            <p class="text-muted">총 예약</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-success">${confirmedReservations}</h4>
+                            <p class="text-muted">확정 예약</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-danger">${cancelledReservations}</h4>
+                            <p class="text-muted">취소 예약</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-info">${totalReservations > 0 ? Math.round((confirmedReservations / totalReservations) * 100) : 0}%</h4>
+                            <p class="text-muted">확정률</p>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    console.error('통계 로드 오류:', error);
+                    document.getElementById('reservationStats').innerHTML = '<p class="text-muted">통계 정보를 불러올 수 없습니다.</p>';
+                });
+        }
+
+        // 레스토랑 이름 가져오기
+        function getRestaurantName(storeId) {
+            const restaurants = {
+                'STORE001': '맛있는 한식당',
+                'STORE002': '이탈리안 레스토랑',
+                'STORE003': '일식 스시바',
+                'STORE004': '중국집',
+                'STORE005': '스테이크하우스'
+            };
+            return restaurants[storeId] || storeId;
+        }
+
+        // 날짜 포맷팅
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        // 페이지 로드 시 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+        });
+    </script>
+</body>
+</html> 
