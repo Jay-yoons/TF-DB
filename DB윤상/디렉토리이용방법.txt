@@ -1,0 +1,11 @@
+해당 디렉토리는 FOG 팀의 1차 프로젝트 DB 관련 사항 정보가 들어있는 문서 건입니다.
+
+데이터사전을 보고 싶으시면 하기 링크 참고 하여 확인을 요청드리며, 
+https://github.com/Jay-yoons/Team-FOG/blob/5cf2db7466832c74b4f33e17bce2088b9991ce1f/DB%EC%9C%A4%EC%83%81/SQL/%EB%8D%B0%EC%9D%B4%ED%84%B0%EC%82%AC%EC%A0%84.txt
+
+본인 API 개발의 각 서비스별 테이블의 확인이 필요 하실 경우
+Modeler 디렉토리의 확인이 필요하실 경우 아래 링크로 확인을 요청드립니다.
+예약 시스템: https://github.com/Jay-yoons/Team-FOG/blob/5cf2db7466832c74b4f33e17bce2088b9991ce1f/DB%EC%9C%A4%EC%83%81/modeler/PDB_BOOKING.pdf
+리뷰: https://github.com/Jay-yoons/Team-FOG/blob/5cf2db7466832c74b4f33e17bce2088b9991ce1f/DB%EC%9C%A4%EC%83%81/modeler/PDB_REVIEW.pdf
+상점(가게): https://github.com/Jay-yoons/Team-FOG/blob/5cf2db7466832c74b4f33e17bce2088b9991ce1f/DB%EC%9C%A4%EC%83%81/modeler/PDB_BOOKING.pdf
+유저(사용자): https://github.com/Jay-yoons/Team-FOG/blob/5cf2db7466832c74b4f33e17bce2088b9991ce1f/DB%EC%9C%A4%EC%83%81/modeler/PDB_USER.pdf
