@@ -1,0 +1,370 @@
+****************************************************************
+|                                                              |
+|                                                              |
+|                         사전작업                             |
+|                                                              |
+|                                                              |
+|                                                              |
+|                                                              |
+*****************************************************************
+--------------------------Oracle DB 설치---------------------------
+노션을 보면서 설치 할 것
+
+DBCA에서 해당 내용 찾아 보면서 주의 깊게 확인 할것
+파라미터
+CREATE_AS_CONTAINER_DATABASE  |	CDB 생성 여부        | (true/false)	true
+PDB_NAME	                    | 생성할 PDB 이름	    |  PDB1
+NUMBER_OF_PDBS	              | 생성할 PDB 개수	    |  1
+PDB_ADMIN_USERNAME	          | PDB 관리자 사용자명	|  pdbadmin
+PDB_ADMIN_PASSWORD	          | PDB 관리자 비밀번호	|  pdbpassword
+
+----------------------------PDB 생성-------------------------------
+CONNECT / AS SYSDBA;
+ALTER SESSION SET CONTAINER = CDB$ROOT;
+
+CREATE PLUGGABLE DATABASE PDB_STORE
+  ADMIN USER STORE_ADMIN IDENTIFIED BY qwer;
+ALTER PLUGGABLE DATABASE PDB_STORE OPEN;
+ALTER PLUGGABLE DATABASE PDB_STORE SAVE STATE;
+
+
+CREATE PLUGGABLE DATABASE PDB_USER
+  ADMIN USER USER_ADMIN IDENTIFIED BY qwer;
+ALTER PLUGGABLE DATABASE PDB_STORE OPEN;
+ALTER PLUGGABLE DATABASE PDB_STORE SAVE STATE;
+
+
+CREATE PLUGGABLE DATABASE PDB_REVIEW
+  ADMIN USER REVIEW_ADMIN IDENTIFIED BY qwer;
+ALTER PLUGGABLE DATABASE PDB_STORE OPEN;
+ALTER PLUGGABLE DATABASE PDB_STORE SAVE STATE;
+
+
+CREATE PLUGGABLE DATABASE PDB_BOOKING
+  ADMIN USER BOOKING_ADMIN IDENTIFIED BY qwer;
+ALTER PLUGGABLE DATABASE PDB_STORE OPEN;
+ALTER PLUGGABLE DATABASE PDB_STORE SAVE STATE
+
+
+
+CREATE PLUGGABLE DATABASE PDB_BOOKING
+  ADMIN USER BOOKING_ADMIN IDENTIFIED BY qwer;
+ALTER PLUGGABLE DATABASE PDB_STORE OPEN;
+ALTER PLUGGABLE DATABASE PDB_STORE SAVE STATE
+
+
+
+****************************************************************
+|                                                              |
+|                                                              |
+|                           본작업                             |
+|                                                              |
+|                                                              |
+|                                                              |
+|                                                              |
+*****************************************************************
+---------------------------------------------PDB_STORE-----------------------------------------------------
+ALTER SESSION SET CONTAINER = PDB_STORE;
+CREATE TABLE STORES 
+    ( 
+     STORE_ID       VARCHAR2 (20 CHAR)  NOT NULL , 
+     STORE_NAME     VARCHAR2 (50 CHAR)  NOT NULL , 
+     CATEGORY_CODE  INTEGER  NOT NULL , 
+     STORE_LOCATION VARCHAR2 (50 CHAR)  NOT NULL , 
+     SEAT_NUM       INTEGER  NOT NULL , 
+     SERVICE_TIME   DATE 
+    ) 
+;
+
+CREATE TABLE CATEGORY 
+    ( 
+     CATEGORY_CODE INTEGER  NOT NULL , 
+     CATEGORY_NAME VARCHAR2 (20 CHAR)  NOT NULL 
+    ) 
+;
+
+CREATE TABLE MENU 
+    ( 
+     STORE_ID  VARCHAR2 (20 CHAR)  NOT NULL , 
+     MENU_NAME VARCHAR2 (30 CHAR)  NOT NULL , 
+     PRICE     INTEGER  NOT NULL 
+    ) 
+;
+
+CREATE TABLE STORE_SEAT 
+    ( 
+     STORE_ID      VARCHAR2 (20 CHAR)  NOT NULL , 
+     IN_USING_SEAT INTEGER  NOT NULL 
+    ) 
+;
+
+ALTER TABLE STORES 
+    ADD CONSTRAINT STORES_PK PRIMARY KEY ( STORE_ID ) ;
+
+ALTER TABLE CATEGORY 
+    ADD CONSTRAINT CATEGORY_PK PRIMARY KEY ( CATEGORY_CODE ) ;
+
+ALTER TABLE STORE_SEAT 
+    ADD CONSTRAINT STORE_SEAT_PK PRIMARY KEY ( STORE_ID ) ;
+
+ALTER TABLE STORES 
+    ADD CONSTRAINT STORES_CATEGORY_FK FOREIGN KEY 
+    ( 
+     CATEGORY_CODE
+    ) 
+    REFERENCES CATEGORY 
+    ( 
+     CATEGORY_CODE
+    ) 
+;
+
+ALTER TABLE MENU 
+    ADD CONSTRAINT MENU_STORES_FK FOREIGN KEY 
+    ( 
+     STORE_ID
+    ) 
+    REFERENCES STORES 
+    ( 
+     STORE_ID
+    ) 
+    ON DELETE CASCADE 
+;
+
+ALTER TABLE STORE_SEAT 
+    ADD CONSTRAINT STORE_SEAT_STORES_FK FOREIGN KEY 
+    ( 
+     STORE_ID
+    ) 
+    REFERENCES STORES 
+    ( 
+     STORE_ID
+    ) 
+    ON DELETE CASCADE 
+;
+--------------------------------------CREATE DB LINK PDB_STORE_LINK-------------------------------
+
+CREATE DATABASE LINK PDB_STORES_LINK
+CONNECT TO stores IDENTIFIED BY "stores_password"
+USING 'PDB_STORE';
+
+exit;
+------------------------------------------------PDB_USERS-----------------------------------------
+ALTER SESSION SET CONTAINER = PDB_USERS;
+CREATE TABLE USERS 
+    ( 
+     USER_ID       VARCHAR2 (15 CHAR)  NOT NULL , 
+     USER_NAME     VARCHAR2 (20 CHAR)  NOT NULL , 
+     PHONE_NUMBER  VARCHAR2 (20 CHAR)  NOT NULL , 
+     USER_LOCATION VARCHAR2 (50 CHAR) , 
+     PASSWORD      VARCHAR2 (255 CHAR)  NOT NULL 
+    ) 
+;
+
+CREATE TABLE FAV_STORE 
+    ( 
+     STORE_ID     VARCHAR2 (20 CHAR)  NOT NULL , 
+     USER_ID      VARCHAR2 (15 CHAR)  NOT NULL , 
+     FAV_STORE_ID INTEGER  NOT NULL 
+    ) 
+;
+
+CREATE MATERIALIZED VIEW MV_USERS_STORES
+BUILD IMMEDIATE
+REFRESH COMPLETE
+START WITH SYSDATE
+NEXT SYSDATE + 1/4 
+AS
+SELECT * FROM STORES@PDB_STORES_LINK;
+
+ALTER TABLE USERS 
+    ADD CONSTRAINT USERS_PK PRIMARY KEY ( USER_ID ) ;
+
+ALTER TABLE FAV_STORE 
+    ADD CONSTRAINT FAV_STORE_PK PRIMARY KEY ( FAV_STORE_ID ) ;
+
+
+ALTER TABLE FAV_STORE 
+    ADD CONSTRAINT FAV_STORE__UN UNIQUE ( STORE_ID , USER_ID ) ;
+
+ALTER TABLE FAV_STORE 
+    ADD CONSTRAINT FAV_STORE_USERS_FK FOREIGN KEY 
+    ( 
+     USER_ID
+    ) 
+    REFERENCES USERS 
+    ( 
+     USER_ID
+    ) 
+    ON DELETE CASCADE 
+;
+
+
+
+ALTER TABLE FAV_STORE 
+    ADD CONSTRAINT FAV_STORE_MV_USERS_STORES_FK FOREIGN KEY 
+    ( 
+     STORE_ID
+    ) 
+    REFERENCES LOCAL_STORES 
+    ( 
+     STORE_ID
+    ) 
+    ON DELETE CASCADE 
+;
+
+
+CREATE SEQUENCE FAV_STORE_FAV_STORE_ID_SEQ 
+START WITH 1 
+    NOCACHE 
+    ORDER ;
+
+CREATE OR REPLACE TRIGGER FAV_STORE_FAV_STORE_ID_TRG 
+BEFORE INSERT ON FAV_STORE 
+FOR EACH ROW 
+WHEN (NEW.FAV_STORE_ID IS NULL) 
+BEGIN 
+    :NEW.FAV_STORE_ID := FAV_STORE_FAV_STORE_ID_SEQ.NEXTVAL; 
+END;
+/
+
+---------------------CREATE DB LINK PDB_USER_LINK------------------------------------------
+
+CREATE DATABASE LINK PDB_USERS_LINK
+CONNECT TO users IDENTIFIED BY "users_password"
+USING 'PDB_USER';
+
+exit;
+-------------------------------------------PDB_REVIEW------------------------------------------------
+ALTER SESSION SET CONTAINER = PDB_REVIEW;
+CREATE TABLE REVIEW 
+    ( 
+     REVIEW_ID INTEGER  NOT NULL ,
+     STORE_ID  VARCHAR2 (20 CHAR)  NOT NULL , 
+     USER_ID   VARCHAR2 (15 CHAR)  NOT NULL , 
+     "COMENT" VARCHAR2 (50 CHAR) , 
+     RATIO     INTEGER  NOT NULL
+    ) 
+;
+
+CREATE MATERIALIZED VIEW MV_REVIEW_USERS
+BUILD IMMEDIATE
+REFRESH COMPLETE
+START WITH SYSDATE
+NEXT SYSDATE + 1/4
+AS
+SELECT * FROM USERS@PDB_USERS_LINK;
+
+
+
+CREATE MATERIALIZED VIEW MV_REVIEW_STORES
+BUILD IMMEDIATE
+REFRESH COMPLETE
+START WITH SYSDATE
+NEXT SYSDATE + 1/4 
+AS
+SELECT * FROM STORES@PDB_STORES_LINK;
+
+
+ALTER TABLE REVIEW 
+    ADD CONSTRAINT REVIEW_PK PRIMARY KEY ( REVIEW_ID ) ;
+
+
+ALTER TABLE REVIEW 
+    ADD CONSTRAINT REVIEW_MV_REVIEW_USERS_FK FOREIGN KEY 
+    ( 
+     USER_ID
+    ) 
+    REFERENCES LOCAL_USERS
+    ( 
+     USER_ID
+    ) 
+    ON DELETE CASCADE 
+;
+
+
+
+ALTER TABLE REVIEW 
+    ADD CONSTRAINT REVIEW_MV_REVIEW_STORES_FK FOREIGN KEY 
+    ( 
+     STORE_ID
+    ) 
+    REFERENCES LOCAL_STORES 
+    ( 
+     STORE_ID
+    ) 
+    ON DELETE CASCADE 
+;
+
+
+exit;
+--------------------------------------PDB_BOOKING------------------------------------------
+ALTER SESSION SET CONTAINER = PDB_BOOKING;
+CREATE TABLE BOOKING 
+    ( 
+     BOOKING_NUM        INTEGER  NOT NULL , 
+     BOOKING_DATE       TIMESTAMP  NOT NULL , 
+     USER_ID            VARCHAR2 (15 CHAR)  NOT NULL , 
+     STORE_ID           VARCHAR2 (20)  NOT NULL , 
+     BOOKING_STATE_CODE INTEGER  NOT NULL , 
+     COUNT              INTEGER  NOT NULL 
+    ) 
+;
+
+
+CREATE TABLE BOOKING_STATE_CODE 
+    ( 
+     BOOKING_STATE_CODE INTEGER  NOT NULL , 
+     STATE_NAME         VARCHAR2 (10)  NOT NULL 
+    ) 
+;
+
+CREATE MATERIALIZED VIEW MV_BOOKING_USERS
+BUILD IMMEDIATE
+REFRESH COMPLETE
+START WITH SYSDATE
+NEXT SYSDATE + 1/4
+AS
+SELECT * FROM USERS@PDB_USERS_LINK;
+
+
+
+CREATE MATERIALIZED VIEW MV_BOOKING_STORES
+BUILD IMMEDIATE
+REFRESH COMPLETE
+START WITH SYSDATE
+NEXT SYSDATE + 1/4 
+AS
+SELECT * FROM STORES@PDB_STORES_LINK;
+
+
+ALTER TABLE BOOKING 
+    ADD CONSTRAINT BOOKING_MV_BOOKING_USERS_FK FOREIGN KEY 
+    ( 
+     USER_ID
+    ) 
+    REFERENCES LOCAL_USERS
+    ( 
+     USER_ID
+    ) 
+    ON DELETE CASCADE 
+;
+
+
+
+ALTER TABLE BOOKING 
+    ADD CONSTRAINT BOOKING_MV_BOOKING_STORES_FK FOREIGN KEY 
+    ( 
+     STORE_ID
+    ) 
+    REFERENCES LOCAL_STORES 
+    ( 
+     STORE_ID
+    ) 
+    ON DELETE CASCADE 
+;
+
+
+ALTER TABLE BOOKING 
+    ADD CONSTRAINT BOOKING_PK PRIMARY KEY ( BOOKING_NUM ) ;
+
+exit;
