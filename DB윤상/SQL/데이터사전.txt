@@ -18,8 +18,11 @@ SERVICE_TIME: 영업시간
 MENU_NAME: 메뉴 이름
 PRICE: 메뉴 가격
 COMMENT: 후기 내용
-RATIO: 평점 (1~10점)
+SCORE: 평점 (1~10점)
 REVIEW_ID: REVIEW의 주식별자
 CATEGORY_CODE: 카테고리 모아두는 코드
 CATEGORY_NAME: 카테고리 이름
 PASSWORD: 유저 비밀번호
+
+테이블
+_MV, VIEW: 외래키의 물리적인 뷰입니다.
