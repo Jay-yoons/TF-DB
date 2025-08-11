@@ -1,17 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import HelloWorld from '../components/HelloWorld.vue'; // HelloWorld 컴포넌트 추가
+import Home from '../views/Home.vue';
 import BookingList from '../views/BookingList.vue';
+import BookingDetail from '../views/BookingDetail.vue'; // 새로운 컴포넌트 추가
 
 const routes = [
   {
-    path: '/', // 루트 경로에 HelloWorld 컴포넌트 연결
+    path: '/',
     name: 'Home',
-    component: HelloWorld
+    component: Home
   },
   {
     path: '/bookings',
     name: 'BookingList',
     component: BookingList
+  },
+  {
+    path: '/bookings/:bookingNum', // 예약 번호를 파라미터로 받는 동적 라우트
+    name: 'BookingDetail',
+    component: BookingDetail
   },
 ];
 

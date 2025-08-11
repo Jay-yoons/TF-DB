@@ -4,7 +4,6 @@
       <router-link to="/">홈</router-link> |
       <router-link to="/bookings">예약 목록</router-link>
     </nav>
-
     <router-view></router-view>
   </div>
 </template>
@@ -16,7 +15,6 @@ export default {
 </script>
 
 <style>
-/* 기존 스타일 유지 */
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -24,5 +22,15 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+nav {
+  padding: 30px;
+}
+nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+nav a.router-link-exact-active {
+  color: #42b983;
 }
 </style>
