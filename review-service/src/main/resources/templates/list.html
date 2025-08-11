@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>리뷰 목록</title>
+    <style>
+        .stars {
+            color: gold;
+            font-size: 1.2em;
+            letter-spacing: 2px;
+        }
+        .review-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .actions {
+            margin-top: 10px;
+        }
+        .btn {
+            padding: 5px 10px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .btn-edit {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+        .page-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+        .page-info {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1 class="page-title" th:text="${title != null ? title : '리뷰 목록'}">리뷰 목록</h1>
+        <div class="page-info">
+            <span th:if="${storeId != null}">가게 ID: <span th:text="${storeId}"></span></span>
+            <span th:if="${userId != null}">
+                <span th:if="${storeId != null}"> | </span>
+                사용자 ID: <span th:text="${userId}"></span>
+            </span>
+        </div>
+    </div>
+    
+    <div th:if="${storeId != null and userId != null}">
+        <a th:href="@{'/reviews/stores/' + ${storeId} + '/users/' + ${userId} + '/new'}" 
+           style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">
+            리뷰 작성
+        </a>
+    </div>
+    
+    <ul style="list-style: none; padding: 0;">
+        <li th:each="review : ${reviews}" class="review-item">
+            <div>
+                <strong>리뷰 ID:</strong> <span th:text="${review.reviewId}"></span>
+                <span th:if="${review.userName}">
+                    <strong>작성자:</strong> <span th:text="${review.userName}"></span>
+                </span>
+            </div>
+            <div>
+                <strong>댓글:</strong> <span th:text="${review.comment}"></span>
+            </div>
+            <div>
+                <strong>평점:</strong> 
+                <span class="stars"
+                      th:utext="${#strings.repeat('★', review.score)} + ${#strings.repeat('☆', 5 - review.score)}"></span>
+                (<span th:text="${review.score}"></span>/5)
+            </div>
+            <div class="actions" th:if="${storeId != null and userId != null}">
+                <a th:href="@{'/reviews/' + ${review.reviewId} + '/edit'}" 
+                   class="btn btn-edit">수정</a>
+                <form th:action="@{'/reviews/' + ${review.reviewId} + '/delete'}" method="post" style="display:inline;">
+                    <input type="hidden" name="userId" th:value="${userId}"/>
+                    <input type="hidden" name="storeId" th:value="${storeId}"/>
+                    <button type="submit" class="btn btn-delete">삭제</button>
+                </form>
+            </div>
+        </li>
+    </ul>
+    
+    <div style="margin-top: 20px;">
+        <a th:if="${userId != null and storeId == null}" 
+           th:href="@{'/reviews/users/' + ${userId}}" 
+           style="color: #007bff; text-decoration: none;">
+            ← 사용자의 모든 리뷰 보기
+        </a>
+        <a th:if="${userId != null and storeId != null}" 
+           th:href="@{'/reviews/users/' + ${userId}}" 
+           style="color: #007bff; text-decoration: none;">
+            ← 사용자의 모든 리뷰 보기
+        </a>
+        <a th:if="${title != null}" 
+           href="/test/links" 
+           style="color: #007bff; text-decoration: none;">
+            ← 테스트 페이지로 돌아가기
+        </a>
+    </div>
+</body>
+</html>

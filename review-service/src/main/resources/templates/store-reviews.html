@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>가게 리뷰 목록</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .page-header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .page-title {
+            color: #333;
+            margin: 0 0 10px 0;
+            font-size: 2em;
+        }
+        .store-info {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .review-item {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .reviewer-info {
+            font-weight: bold;
+            color: #333;
+        }
+        .review-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .stars {
+            color: gold;
+            font-size: 1.3em;
+            letter-spacing: 3px;
+            margin: 10px 0;
+        }
+        .review-comment {
+            color: #333;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+        .actions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .btn {
+            padding: 8px 15px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .btn-edit {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-write {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        .no-reviews {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+        .average-score {
+            font-size: 1.5em;
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1 class="page-title" th:text="${title}">가게 리뷰 목록</h1>
+        <div class="store-info">
+            🏪 <span th:text="${storeId}">STORE001</span>
+        </div>
+        
+        <!-- 통계 정보 -->
+        <div class="stats" th:if="${!reviews.empty}">
+            <div class="stat-item">
+                <div class="stat-number" th:text="${reviews.size()}">0</div>
+                <div class="stat-label">총 리뷰 수</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number average-score" 
+                     th:text="${#numbers.formatDecimal(reviews.stream().mapToInt(r -> r.score).average().orElse(0), 1, 1)}">0.0</div>
+                <div class="stat-label">평균 평점</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" th:text="${reviews.stream().mapToInt(r -> r.score).max().orElse(0)}">0</div>
+                <div class="stat-label">최고 평점</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 리뷰 작성 버튼 -->
+    <div style="text-align: center;">
+        <a th:href="@{'/reviews/stores/' + ${storeId} + '/new'}" 
+           class="btn btn-write">✏️ 이 가게에 리뷰 작성하기</a>
+    </div>
+    
+    <!-- 리뷰 목록 -->
+    <div th:if="${!reviews.empty}">
+        <div th:each="review : ${reviews}" class="review-item">
+            <div class="review-header">
+                <div class="reviewer-info">
+                    👤 <span th:text="${review.userName != null ? review.userName : review.userId}">사용자</span>
+                    <span style="color: #666; font-size: 0.9em;">(<span th:text="${review.userId}">USER001</span>)</span>
+                </div>
+                <div class="review-date">
+                    리뷰 ID: <span th:text="${review.reviewId}">1</span>
+                </div>
+            </div>
+            
+            <div class="stars"
+                 th:utext="${#strings.repeat('★', review.score)} + ${#strings.repeat('☆', 5 - review.score)}">
+                ★★★★★
+            </div>
+            
+            <div class="review-comment" th:text="${review.comment}">
+                리뷰 내용이 여기에 표시됩니다.
+            </div>
+            
+            <div class="actions">
+                <a th:href="@{'/reviews/' + ${review.reviewId} + '/edit'}" 
+                   class="btn btn-edit">수정</a>
+                <form th:action="@{'/reviews/' + ${review.reviewId} + '/delete'}" method="post" style="display:inline;">
+                    <input type="hidden" name="storeId" th:value="${storeId}"/>
+                    <button type="submit" class="btn btn-delete">삭제</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 리뷰가 없을 때 -->
+    <div th:if="${reviews.empty}" class="no-reviews">
+        <h3>아직 리뷰가 없습니다 😊</h3>
+        <p>이 가게의 첫 번째 리뷰를 작성해보세요!</p>
+    </div>
+    
+    <!-- 네비게이션 -->
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="/test/links" style="color: #007bff; text-decoration: none; margin-right: 20px;">
+            ← 테스트 페이지로 돌아가기
+        </a>
+        <a th:href="@{'/reviews'}" style="color: #007bff; text-decoration: none;">
+            ← 다른 가게 보기
+        </a>
+    </div>
+</body>
+</html>

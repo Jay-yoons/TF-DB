@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>리뷰 작성/수정</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .score-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .score-input input {
+            width: 80px;
+        }
+        .page-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .page-title {
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+        .store-info {
+            color: #666;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1 class="page-title" th:text="${title}">리뷰 작성/수정</h1>
+        <div class="store-info" th:if="${storeId != null}">
+            🏪 <span th:text="${storeId}">STORE001</span>
+        </div>
+    </div>
+
+    <!-- 수정 모드일 때는 PUT 메서드 사용 -->
+    <form th:if="${review.reviewId != null}" 
+          th:action="@{'/reviews/' + ${review.reviewId}}" 
+          th:object="${review}" 
+          method="post">
+        <input type="hidden" name="_method" value="put" />
+        
+        <div class="form-group">
+            <label>가게 ID:</label>
+            <input type="text" th:field="*{storeId}" readonly />
+        </div>
+        
+        <div class="form-group">
+            <label>댓글:</label>
+            <textarea th:field="*{comment}" placeholder="리뷰 내용을 입력하세요..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>평점:</label>
+            <div class="score-input">
+                <input type="number" th:field="*{score}" min="1" max="5" />
+                <span>/ 5점</span>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">수정</button>
+        <a th:href="@{'/reviews/stores/' + ${review.storeId}}" 
+           class="btn btn-secondary">취소</a>
+    </form>
+
+    <!-- 생성 모드일 때는 POST 메서드 사용 -->
+    <form th:if="${review.reviewId == null}" 
+          th:action="@{'/reviews/stores/' + ${storeId}}" 
+          th:object="${review}" 
+          method="post">
+        
+        <div class="form-group">
+            <label>가게 ID:</label>
+            <input type="text" th:field="*{storeId}" readonly />
+        </div>
+        
+        <div class="form-group">
+            <label>사용자 ID:</label>
+            <input type="text" name="userId" placeholder="USER001, USER002 등..." required />
+        </div>
+        
+        <div class="form-group">
+            <label>댓글:</label>
+            <textarea th:field="*{comment}" placeholder="리뷰 내용을 입력하세요..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>평점:</label>
+            <div class="score-input">
+                <input type="number" th:field="*{score}" min="1" max="5" />
+                <span>/ 5점</span>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">등록</button>
+        <a th:href="@{'/reviews/stores/' + ${storeId}}" 
+           class="btn btn-secondary">취소</a>
+    </form>
+</body>
+</html>

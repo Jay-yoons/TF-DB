@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>테스트 링크 페이지</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .link-group {
+            margin: 15px 0;
+        }
+        .link-group h3 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .test-link {
+            display: inline-block;
+            margin: 5px 10px 5px 0;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .test-link:hover {
+            background-color: #0056b3;
+        }
+        .danger {
+            background-color: #dc3545;
+        }
+        .danger:hover {
+            background-color: #c82333;
+        }
+        .success {
+            background-color: #28a745;
+        }
+        .success:hover {
+            background-color: #218838;
+        }
+        .info {
+            background-color: #17a2b8;
+        }
+        .info:hover {
+            background-color: #138496;
+        }
+        .primary {
+            background-color: #007bff;
+        }
+        .primary:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 리뷰 서비스 테스트 페이지</h1>
+    
+    <div class="section">
+        <h2>📋 기본 테스트</h2>
+        <div class="link-group">
+            <h3>전체 리뷰 조회</h3>
+            <a href="/test/all-reviews" class="test-link info">모든 리뷰 보기</a>
+            <a href="/reviews" class="test-link info">기본 페이지 (리다이렉트)</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🏪 가게별 리뷰 테스트 (메인 기능)</h2>
+        <div class="link-group">
+            <h3>가게 페이지 (모든 사용자 리뷰)</h3>
+            <a href="/reviews/stores/STORE001" class="test-link primary">STORE001 가게 페이지</a>
+            <a href="/reviews/stores/STORE002" class="test-link primary">STORE002 가게 페이지</a>
+            <a href="/reviews/stores/STORE003" class="test-link primary">STORE003 가게 페이지</a>
+            <a href="/reviews/stores/STORE004" class="test-link primary">STORE004 가게 페이지</a>
+            <a href="/reviews/stores/STORE005" class="test-link primary">STORE005 가게 페이지</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>✏️ 리뷰 작성 테스트</h2>
+        <div class="link-group">
+            <h3>새 리뷰 작성</h3>
+            <a href="/reviews/stores/STORE001/new" class="test-link success">STORE001에 리뷰 작성</a>
+            <a href="/reviews/stores/STORE002/new" class="test-link success">STORE002에 리뷰 작성</a>
+            <a href="/reviews/stores/STORE003/new" class="test-link success">STORE003에 리뷰 작성</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>👤 사용자별 리뷰 테스트 (부가 기능)</h2>
+        <div class="link-group">
+            <h3>사용자별 전체 리뷰</h3>
+            <a href="/reviews/users/USER001" class="test-link">USER001의 모든 리뷰</a>
+            <a href="/reviews/users/USER002" class="test-link">USER002의 모든 리뷰</a>
+            <a href="/reviews/users/USER003" class="test-link">USER003의 모든 리뷰</a>
+            <a href="/reviews/users/USER004" class="test-link">USER004의 모든 리뷰</a>
+            <a href="/reviews/users/USER005" class="test-link">USER005의 모든 리뷰</a>
+        </div>
+        <div class="link-group">
+            <h3>특정 사용자의 특정 가게 리뷰</h3>
+            <a href="/reviews/stores/STORE001/users/USER001" class="test-link">USER001의 STORE001 리뷰</a>
+            <a href="/reviews/stores/STORE002/users/USER001" class="test-link">USER001의 STORE002 리뷰</a>
+            <a href="/reviews/stores/STORE003/users/USER002" class="test-link">USER002의 STORE003 리뷰</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🔧 관리 도구</h2>
+        <div class="link-group">
+            <h3>데이터베이스 관리</h3>
+            <a href="/h2-console" class="test-link info" target="_blank">H2 데이터베이스 콘솔</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📊 예시 데이터 정보</h2>
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+            <h3>생성된 예시 데이터:</h3>
+            <ul>
+                <li><strong>가게:</strong> STORE001, STORE002, STORE003, STORE004, STORE005</li>
+                <li><strong>사용자:</strong> USER001, USER002, USER003, USER004, USER005</li>
+                <li><strong>총 리뷰 수:</strong> 10개</li>
+                <li><strong>평점 범위:</strong> 2점 ~ 5점</li>
+            </ul>
+            <p><strong>참고:</strong> 각 사용자는 가게당 하나의 리뷰만 작성할 수 있습니다.</p>
+            <p><strong>주요 변경사항:</strong> 이제 가게 페이지에서 모든 사용자의 리뷰를 한 번에 볼 수 있습니다!</p>
+        </div>
+    </div>
+</body>
+</html>
