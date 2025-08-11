@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>예약 상세 - 전국 레스토랑 예약 시스템</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #f8f9fa;
+            --dark-bg: #2c3e50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            line-height: 1.6;
+            color: var(--primary-color);
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: white !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--warning-color) !important;
+            transform: translateY(-2px);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        /* Booking Detail Card */
+        .booking-detail-card {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .detail-value {
+            color: #6c757d;
+        }
+
+        .status-badge {
+            font-weight: 600;
+            padding: .35em .65em;
+            border-radius: .5rem;
+            color: white;
+        }
+
+        .status-badge.confirmed {
+            background-color: var(--secondary-color);
+        }
+        .status-badge.cancelled {
+            background-color: var(--accent-color);
+        }
+        .status-badge.complete {
+            background-color: var(--success-color);
+        }
+
+        .action-buttons {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-cancel:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-utensils me-2"></i>전국 레스토랑 예약
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/"><i class="fas fa-home me-1"></i>홈</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/bookings"><i class="fas fa-calendar me-1"></i>내 예약 목록</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-user me-1"></i>마이페이지</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-1"></i>로그아웃
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section class="page-header">
+    <div class="container">
+        <h1 class="page-title">
+            <i class="fas fa-receipt me-2"></i>예약 상세 정보
+        </h1>
+        <p>예약 번호: <span th:text="${booking.bookingNum}">12345</span></p>
+    </div>
+</section>
+
+<main class="py-5">
+    <div class="container">
+        <div th:if="${error}" class="alert alert-danger mb-4" role="alert">
+            <span th:text="${error}">예약 정보를 찾을 수 없습니다.</span>
+        </div>
+
+        <div th:if="${booking != null}" class="booking-detail-card">
+            <h3 class="mb-4">예약 정보</h3>
+            <div class="detail-item">
+                <span class="detail-label">예약 번호</span>
+                <span class="detail-value" th:text="${booking.bookingNum}">12345</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">유저 ID</span>
+                <span class="detail-value" th:text="${booking.userId}">user_001</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">가게 ID</span>
+                <span class="detail-value" th:text="${booking.storeId}">store_A</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">예약 일자</span>
+                <span class="detail-value" th:text="${#temporals.format(booking.bookingDate, 'yyyy년 MM월 dd일 HH시 mm분')}">2025년 08월 11일 10시 00분</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">예약 상태</span>
+                <span class="detail-value">
+                    <span th:classappend="${booking.bookingStateCode.name() == 'CONFIRMED'} ? 'confirmed' :
+                                           (${booking.bookingStateCode.name() == 'CANCELLED'} ? 'cancelled' :
+                                           'complete')"
+                          class="status-badge"
+                          th:text="${booking.bookingStateCode.name()}">CONFIRMED</span>
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">예약 좌석 수</span>
+                <span class="detail-value" th:text="${booking.count} + '명'">2명</span>
+            </div>
+
+            <div class="action-buttons" th:if="${booking.bookingStateCode.name() == 'CONFIRMED'}">
+                <form th:action="@{/bookings/{bookingNum}(bookingNum=${booking.bookingNum})}" method="post">
+                    <input type="hidden" name="_method" value="patch" />
+                    <button type="submit" class="btn btn-cancel"
+                            onclick="return confirm('정말 예약을 취소하시겠습니까?');">
+                        <i class="fas fa-times me-2"></i>예약 취소
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${booking == null}">
+            <div class="alert alert-warning text-center" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>예약 정보를 찾을 수 없습니다.
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    async function logout() {
+        alert('로그아웃되었습니다.');
+        window.location.href = '/';
+    }
+</script>
+</body>
+</html>

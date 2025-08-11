@@ -29,9 +29,16 @@ public class Booking {
     private String storeId;
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(name = "BOOKING_STATE_CODE", nullable = false)
+    @Column(name = "BOOKING_STATE_CODE", nullable = false, columnDefinition = "INT DEFAULT 0")
     private BookingStateCode bookingStateCode;
 
     @Column(name = "COUNT", nullable = false)
     private int count;
+
+    public Booking(LocalDateTime bookingDate, String userId, String storeId, int count) {
+        this.bookingDate = bookingDate;
+        this.userId = userId;
+        this.storeId = storeId;
+        this.count = count;
+    }
 }
