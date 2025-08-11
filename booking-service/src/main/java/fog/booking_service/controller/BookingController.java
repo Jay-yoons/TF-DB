@@ -1,20 +1,14 @@
 package fog.booking_service.controller;
 
-import fog.booking_service.domain.Booking;
-import fog.booking_service.dto.BookingListReponse;
-import fog.booking_service.dto.BookingRequest;
+import fog.booking_service.dto.BookingListResponse;
 import fog.booking_service.servivce.BookingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
-@Controller
+@RestController
 @Slf4j
 @RequiredArgsConstructor
 public class BookingController {
@@ -33,18 +27,13 @@ public class BookingController {
 
 
     @GetMapping("/bookings")
-    public String findBookingList(Model model, @RequestParam String userId) {
-        List<BookingListReponse> bookingList = bookingService.getBookingList(userId);
-        for (BookingListReponse res : bookingList) {
-            log.info("list - {}", res.getBookingNum());
-        }
-        model.addAttribute("bookingList", bookingList);
-        return "booking-list";
+    public List<BookingListResponse> findBookingList(@RequestParam String userId) {
+        return bookingService.getBookingList(userId);
     }
-
-    /*
+/*
+    *//*
     예약 상세 조회
-    */
+    *//*
     @GetMapping("/bookings/{bookingNum}")
     public String findBooking(@PathVariable Long bookingNum, Model model) {
         try {
@@ -56,17 +45,17 @@ public class BookingController {
         }
     }
 
-    /*
+    *//*
     예약 생성 폼
-    */
+    *//*
     @GetMapping("/bookings/new")
     public String showBookingForm() {
         return "booking";
     }
 
-    /*
+    *//*
     예약 생성
-    */
+    *//*
     @PostMapping("/bookings/new")
     public String booking(@ModelAttribute BookingRequest request, RedirectAttributes attributes) {
         try {
@@ -79,9 +68,9 @@ public class BookingController {
         }
     }
 
-    /*
+    *//*
     예약 취소 - 예약이 삭제되지 않고 state만 변경
-    */
+    *//*
     @PatchMapping("/bookings/{bookingNum}")
     public String cancelBooking(@PathVariable Long bookingNum, RedirectAttributes attributes) {
         try {
@@ -98,5 +87,5 @@ public class BookingController {
             attributes.addFlashAttribute("error", "해당 예약을 찾을 수 없습니다.");
             return "redirect:/bookings";
         }
-    }
+    }*/
 }

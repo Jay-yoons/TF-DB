@@ -2,7 +2,7 @@ package fog.booking_service.servivce;
 
 import fog.booking_service.domain.Booking;
 import fog.booking_service.domain.BookingStateCode;
-import fog.booking_service.dto.BookingListReponse;
+import fog.booking_service.dto.BookingListResponse;
 import fog.booking_service.dto.BookingRequest;
 import fog.booking_service.repositoroy.BookingRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +24,14 @@ public class BookingService {
     /*
     예약 리스트 조회
      */
-    public List<BookingListReponse> getBookingList(String userId) {
+    public List<BookingListResponse> getBookingList(String userId) {
         log.info("예약 리스트 조회");
         List<Booking> bookings = bookingRepository.findAllByUserId(userId);
         for (Booking booking : bookings) {
             log.info("bookingNum={}", booking.getBookingNum());
         }
         return bookings.stream()
-                .map(b -> BookingListReponse.builder()
+                .map(b -> BookingListResponse.builder()
                         .bookingNum(b.getBookingNum())
                         .bookingDate(b.getBookingDate())
                         .storeId(b.getStoreId())
