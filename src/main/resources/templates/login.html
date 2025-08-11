@@ -89,15 +89,29 @@
             })
             .then(response => {
                 if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('로그인 실패');
+                }
+            })
+            .then(data => {
+                // JWT 토큰을 localStorage에 저장
+                if (data.accessToken) {
+                    localStorage.setItem('accessToken', data.accessToken);
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                    localStorage.setItem('userInfo', JSON.stringify({
+                        userId: data.userId,
+                        userName: data.userName
+                    }));
                     alert('로그인이 성공했습니다!');
                     window.location.href = '/';
                 } else {
-                    alert('아이디 또는 비밀번호가 올바르지 않습니다.');
+                    alert('로그인 응답에 토큰이 없습니다.');
                 }
             })
             .catch(error => {
                 console.error('로그인 오류:', error);
-                alert('로그인 중 오류가 발생했습니다.');
+                alert('아이디 또는 비밀번호가 올바르지 않습니다.');
             });
         });
     </script>

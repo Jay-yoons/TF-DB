@@ -285,14 +285,34 @@
         // 로그인 상태 확인
         async function checkLoginStatus() {
             try {
-                const response = await fetch('/login/status');
+                const accessToken = localStorage.getItem('accessToken');
+                if (!accessToken) {
+                    isLoggedIn = false;
+                    updateNavigation();
+                    return;
+                }
+
+                const response = await fetch('/login/status', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.loggedIn) {
-                        currentUser = data;
+                    if (data.valid) {
+                        currentUser = {
+                            userId: data.userId,
+                            userName: data.userName,
+                            loggedIn: true
+                        };
                         isLoggedIn = true;
                         updateNavigation();
                     } else {
+                        // 토큰이 유효하지 않으면 localStorage에서 제거
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('userInfo');
                         isLoggedIn = false;
                         updateNavigation();
                     }
@@ -559,11 +579,20 @@
         // 로그아웃
         async function logout() {
             try {
+                const accessToken = localStorage.getItem('accessToken');
                 const response = await fetch('/login/logout', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
                 });
 
                 if (response.ok) {
+                    // localStorage에서 토큰 제거
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('userInfo');
+                    
                     isLoggedIn = false;
                     currentUser = null;
                     updateNavigation();
@@ -572,7 +601,16 @@
                 }
             } catch (error) {
                 console.error('로그아웃 오류:', error);
-                alert('로그아웃 중 오류가 발생했습니다.');
+                // 에러가 발생해도 클라이언트 측에서 토큰 제거
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('userInfo');
+                
+                isLoggedIn = false;
+                currentUser = null;
+                updateNavigation();
+                alert('로그아웃되었습니다.');
+                window.location.href = '/';
             }
         }
     </script>

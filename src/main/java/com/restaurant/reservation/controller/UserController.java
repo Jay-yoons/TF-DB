@@ -47,14 +47,15 @@ public class UserController {
     }
     
     /**
-     * 내 정보 조회
+     * 내 정보 조회 (JWT 기반)
      */
     @GetMapping("/me")
-    public ResponseEntity<UserInfoDto> getMyInfo(HttpSession session) {
+    public ResponseEntity<UserInfoDto> getMyInfo() {
         try {
             logger.info("내 정보 조회 요청");
             
-            String userId = (String) session.getAttribute("userId");
+            // Spring Security 컨텍스트에서 현재 인증된 사용자 정보 가져오기
+            String userId = getCurrentUserId();
             if (userId == null) {
                 logger.warn("로그인이 필요합니다");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -72,6 +73,26 @@ public class UserController {
         } catch (Exception e) {
             logger.error("내 정보 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * 현재 인증된 사용자의 ID를 가져오는 헬퍼 메서드
+     */
+    private String getCurrentUserId() {
+        try {
+            org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            
+            if (authentication != null && authentication.isAuthenticated() && 
+                !"anonymousUser".equals(authentication.getName())) {
+                return authentication.getName();
+            }
+            
+            return null;
+        } catch (Exception e) {
+            logger.error("현재 사용자 ID 조회 중 오류 발생", e);
+            return null;
         }
     }
     

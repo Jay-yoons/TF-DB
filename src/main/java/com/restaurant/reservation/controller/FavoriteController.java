@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -26,14 +25,14 @@ public class FavoriteController {
     }
     
     /**
-     * 내 즐겨찾기 가게 목록 조회
+     * 내 즐겨찾기 가게 목록 조회 (JWT 기반)
      */
     @GetMapping
-    public ResponseEntity<List<FavoriteResponseDto>> getMyFavorites(HttpSession session) {
+    public ResponseEntity<List<FavoriteResponseDto>> getMyFavorites() {
         try {
             logger.info("내 즐겨찾기 가게 목록 조회 요청");
             
-            String userId = (String) session.getAttribute("userId");
+            String userId = getCurrentUserId();
             if (userId == null) {
                 logger.warn("로그인이 필요합니다");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -51,14 +50,14 @@ public class FavoriteController {
     }
     
     /**
-     * 즐겨찾기 추가
+     * 즐겨찾기 추가 (JWT 기반)
      */
     @PostMapping
-    public ResponseEntity<FavoriteResponseDto> addFavorite(@RequestBody FavoriteRequestDto requestDto, HttpSession session) {
+    public ResponseEntity<FavoriteResponseDto> addFavorite(@RequestBody FavoriteRequestDto requestDto) {
         try {
             logger.info("즐겨찾기 추가 요청: storeId={}", requestDto.getStoreId());
             
-            String userId = (String) session.getAttribute("userId");
+            String userId = getCurrentUserId();
             if (userId == null) {
                 logger.warn("로그인이 필요합니다");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -77,14 +76,14 @@ public class FavoriteController {
     }
     
     /**
-     * 즐겨찾기 삭제
+     * 즐겨찾기 삭제 (JWT 기반)
      */
     @DeleteMapping("/{storeId}")
-    public ResponseEntity<Void> removeFavorite(@PathVariable String storeId, HttpSession session) {
+    public ResponseEntity<Void> removeFavorite(@PathVariable String storeId) {
         try {
             logger.info("즐겨찾기 삭제 요청: storeId={}", storeId);
             
-            String userId = (String) session.getAttribute("userId");
+            String userId = getCurrentUserId();
             if (userId == null) {
                 logger.warn("로그인이 필요합니다");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -102,14 +101,14 @@ public class FavoriteController {
     }
     
     /**
-     * 특정 가게의 즐겨찾기 여부 확인
+     * 특정 가게의 즐겨찾기 여부 확인 (JWT 기반)
      */
     @GetMapping("/check/{storeId}")
-    public ResponseEntity<Boolean> checkFavorite(@PathVariable String storeId, HttpSession session) {
+    public ResponseEntity<Boolean> checkFavorite(@PathVariable String storeId) {
         try {
             logger.info("즐겨찾기 여부 확인 요청: storeId={}", storeId);
             
-            String userId = (String) session.getAttribute("userId");
+            String userId = getCurrentUserId();
             if (userId == null) {
                 logger.warn("로그인이 필요합니다");
                 return ResponseEntity.ok(false);
@@ -127,14 +126,14 @@ public class FavoriteController {
     }
     
     /**
-     * 사용자의 즐겨찾기 가게 ID 목록 조회
+     * 사용자의 즐겨찾기 가게 ID 목록 조회 (JWT 기반)
      */
     @GetMapping("/store-ids")
-    public ResponseEntity<List<String>> getUserFavoriteStoreIds(HttpSession session) {
+    public ResponseEntity<List<String>> getUserFavoriteStoreIds() {
         try {
             logger.info("사용자 즐겨찾기 가게 ID 목록 조회 요청");
             
-            String userId = (String) session.getAttribute("userId");
+            String userId = getCurrentUserId();
             if (userId == null) {
                 logger.warn("로그인이 필요합니다");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -148,6 +147,26 @@ public class FavoriteController {
         } catch (Exception e) {
             logger.error("즐겨찾기 가게 ID 목록 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * 현재 인증된 사용자의 ID를 가져오는 헬퍼 메서드
+     */
+    private String getCurrentUserId() {
+        try {
+            org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            
+            if (authentication != null && authentication.isAuthenticated() && 
+                !"anonymousUser".equals(authentication.getName())) {
+                return authentication.getName();
+            }
+            
+            return null;
+        } catch (Exception e) {
+            logger.error("현재 사용자 ID 조회 중 오류 발생", e);
+            return null;
         }
     }
 }

@@ -4,13 +4,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -20,13 +28,51 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authz -> authz
-                .anyRequest().permitAll()
-            )
             .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authorizeHttpRequests(authz -> authz
+                // =============================================================================
+                // 정적 리소스 및 기본 페이지 (인증 불필요)
+                // =============================================================================
+                .requestMatchers("/", "/login", "/signup", "/register", "/h2-console/**", "/actuator/**", "/public/**", 
+                               "/css/**", "/js/**", "/images/**", "/favicon.ico", "/.well-known/**").permitAll()
+                
+                // =============================================================================
+                // HTML 페이지 (인증 불필요)
+                // =============================================================================
+                .requestMatchers("/mypage", "/restaurants", "/reservations", "/reviews").permitAll()
+                
+                // =============================================================================
+                // 공개 API (인증 불필요)
+                // =============================================================================
+                .requestMatchers("/login/status", "/login/logout", "/users/count", "/users", "/api/auth/**").permitAll()
+                
+                // =============================================================================
+                // MSA 연동 API (인증 불필요)
+                // =============================================================================
+                .requestMatchers("/msa/**", "/api/msa/**", "/api/health/**", "/api/test/**").permitAll()
+                
+                // =============================================================================
+                // 사용자 관련 API (JWT 토큰 필요)
+                // =============================================================================
+                .requestMatchers("/users/me", "/favorites/**", "/reviews/**", "/bookings/**").authenticated()
+                
+                // =============================================================================
+                // 기타 API (JWT 토큰 필요)
+                // =============================================================================
+                .requestMatchers("/api/**").authenticated()
+                
+                // =============================================================================
+                // 기타 모든 요청 (인증 필요)
+                // =============================================================================
+                .anyRequest().authenticated()
+            )
             .headers(headers -> headers
                 .frameOptions().sameOrigin()
-            );
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

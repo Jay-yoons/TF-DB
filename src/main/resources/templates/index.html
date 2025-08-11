@@ -1162,15 +1162,35 @@
         // Check login status
         async function checkLoginStatus() {
             try {
-                const response = await fetch('/login/status');
+                const accessToken = localStorage.getItem('accessToken');
+                if (!accessToken) {
+                    isLoggedIn = false;
+                    updateNavigation();
+                    return;
+                }
+
+                const response = await fetch('/login/status', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.loggedIn) {
-                        currentUser = data;
+                    if (data.valid) {
+                        currentUser = {
+                            userId: data.userId,
+                            userName: data.userName,
+                            loggedIn: true
+                        };
                         isLoggedIn = true;
                         updateNavigation();
                         loadUserFavorites();
                     } else {
+                        // 토큰이 유효하지 않으면 localStorage에서 제거
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('userInfo');
                         isLoggedIn = false;
                         updateNavigation();
                     }
@@ -1218,7 +1238,12 @@
             if (!isLoggedIn) return;
 
             try {
-                const response = await fetch('/favorites/store-ids');
+                const accessToken = localStorage.getItem('accessToken');
+                const response = await fetch('/favorites/store-ids', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
                 if (response.ok) {
                     userFavorites = await response.json();
                     displayRestaurants();
@@ -1237,12 +1262,16 @@
             }
 
             try {
+                const accessToken = localStorage.getItem('accessToken');
                 const isFavorite = userFavorites.includes(storeId);
                 
                 if (isFavorite) {
                     // Remove from favorites
                     const response = await fetch(`/favorites/${storeId}`, {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`
+                        }
                     });
                     if (response.ok) {
                         userFavorites = userFavorites.filter(id => id !== storeId);
@@ -1250,13 +1279,14 @@
                 } else {
                     // Add to favorites
                     const response = await fetch('/favorites', {
-                method: 'POST',
-                headers: {
-                            'Content-Type': 'application/json'
-                },
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${accessToken}`
+                        },
                         body: JSON.stringify({ storeId: storeId })
                     });
-                if (response.ok) {
+                    if (response.ok) {
                         userFavorites.push(storeId);
                     }
                 }
@@ -1286,20 +1316,37 @@
                 });
 
                 if (response.ok) {
-                    const userData = await response.json();
-                    currentUser = userData;
-                    isLoggedIn = true;
-                    updateNavigation();
-                    loadUserFavorites();
+                    const data = await response.json();
                     
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-                    modal.hide();
-                    
-                    // Clear form
-                    document.getElementById('loginForm').reset();
-                    
-                    alert('로그인되었습니다!');
+                    // JWT 토큰을 localStorage에 저장
+                    if (data.accessToken) {
+                        localStorage.setItem('accessToken', data.accessToken);
+                        localStorage.setItem('refreshToken', data.refreshToken);
+                        localStorage.setItem('userInfo', JSON.stringify({
+                            userId: data.userId,
+                            userName: data.userName
+                        }));
+                        
+                        currentUser = {
+                            userId: data.userId,
+                            userName: data.userName,
+                            loggedIn: true
+                        };
+                        isLoggedIn = true;
+                        updateNavigation();
+                        loadUserFavorites();
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                        modal.hide();
+                        
+                        // Clear form
+                        document.getElementById('loginForm').reset();
+                        
+                        alert('로그인되었습니다!');
+                    } else {
+                        alert('로그인 응답에 토큰이 없습니다.');
+                    }
                 } else {
                     alert('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
                 }
@@ -1349,11 +1396,20 @@
         // Logout function
         async function logout() {
             try {
+                const accessToken = localStorage.getItem('accessToken');
                 const response = await fetch('/login/logout', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
                 });
 
                 if (response.ok) {
+                    // localStorage에서 토큰 제거
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('userInfo');
+                    
                     isLoggedIn = false;
                     currentUser = null;
                     userFavorites = [];
@@ -1364,7 +1420,18 @@
                 }
             } catch (error) {
                 console.error('Logout error:', error);
-                alert('로그아웃 중 오류가 발생했습니다.');
+                // 에러가 발생해도 클라이언트 측에서 토큰 제거
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('userInfo');
+                
+                isLoggedIn = false;
+                currentUser = null;
+                userFavorites = [];
+                updateNavigation();
+                displayRestaurants();
+                displayRestaurantList();
+                alert('로그아웃되었습니다.');
             }
         }
 

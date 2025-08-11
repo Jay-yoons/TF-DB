@@ -348,11 +348,28 @@
         // 로그인 상태 확인
         async function checkLoginStatus() {
             try {
-                const response = await fetch('/login/status');
+                const accessToken = localStorage.getItem('accessToken');
+                if (!accessToken) {
+                    isLoggedIn = false;
+                    updateNavigation();
+                    showLoginRequired();
+                    return;
+                }
+
+                const response = await fetch('/login/status', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.loggedIn) {
-                        currentUser = data;
+                    if (data.valid) {
+                        currentUser = {
+                            userId: data.userId,
+                            userName: data.userName,
+                            loggedIn: true
+                        };
                         isLoggedIn = true;
                         updateNavigation();
                         loadUserInfo();
@@ -362,6 +379,10 @@
                         loadMyReviews();
                         loadAllReservations();
                     } else {
+                        // 토큰이 유효하지 않으면 localStorage에서 제거
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('userInfo');
                         isLoggedIn = false;
                         updateNavigation();
                         showLoginRequired();
@@ -442,7 +463,12 @@
         // 사용자 정보 로드
         async function loadUserInfo() {
             try {
-                const response = await fetch('/users/me');
+                const accessToken = localStorage.getItem('accessToken');
+                const response = await fetch('/users/me', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
                 if (response.ok) {
                     const user = await response.json();
                     const userInfoContent = document.getElementById('userInfoContent');
@@ -617,7 +643,12 @@
         // 즐겨찾기 가게 로드
         async function loadFavoriteStores() {
             try {
-                const response = await fetch('/favorites');
+                const accessToken = localStorage.getItem('accessToken');
+                const response = await fetch('/favorites', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
                 if (response.ok) {
                     const favorites = await response.json();
                     const favoriteStores = document.getElementById('favoriteStores');
@@ -671,8 +702,12 @@
         // 즐겨찾기 해제
         async function removeFavorite(storeId) {
             try {
+                const accessToken = localStorage.getItem('accessToken');
                 const response = await fetch(`/favorites/${storeId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
                 });
                 
                 if (response.ok) {
@@ -712,10 +747,12 @@
             try {
                 // Review Service에서 내 리뷰 정보를 가져오는 API 호출
                 // 실제 ECS 환경에서는 Review Service URL로 변경
+                const accessToken = localStorage.getItem('accessToken');
                 const response = await fetch('/api/reviews/my', {
                     method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
                     }
                 });
                 
@@ -884,11 +921,20 @@
         // 로그아웃
         async function logout() {
             try {
+                const accessToken = localStorage.getItem('accessToken');
                 const response = await fetch('/login/logout', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
                 });
 
                 if (response.ok) {
+                    // localStorage에서 토큰 제거
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('userInfo');
+                    
                     isLoggedIn = false;
                     currentUser = null;
                     updateNavigation();
@@ -898,7 +944,17 @@
                 }
             } catch (error) {
                 console.error('로그아웃 오류:', error);
-                alert('로그아웃 중 오류가 발생했습니다.');
+                // 에러가 발생해도 클라이언트 측에서 토큰 제거
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('userInfo');
+                
+                isLoggedIn = false;
+                currentUser = null;
+                updateNavigation();
+                showLoginRequired();
+                alert('로그아웃되었습니다.');
+                window.location.href = '/';
             }
         }
     </script>
