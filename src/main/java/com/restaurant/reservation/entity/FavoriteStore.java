@@ -26,8 +26,8 @@ import java.time.LocalDateTime;
  * @since 2024-01-15
  */
 @Entity
-@Table(name = "mv_fav_store", uniqueConstraints = {
-    @UniqueConstraint(name = "fav_store_un", columnNames = {"user_id", "store_id"})
+@Table(name = "FAV_STORE", uniqueConstraints = {
+    @UniqueConstraint(name = "fav_store_un", columnNames = {"USER_ID", "STORE_ID2"})
 })
 @EntityListeners(AuditingEntityListener.class)
 public class FavoriteStore {
@@ -45,14 +45,14 @@ public class FavoriteStore {
      * 사용자 ID (외래키)
      * 최대 15자까지 저장 가능
      */
-    @Column(name = "user_id", nullable = false, length = 15)
+    @Column(name = "USER_ID", nullable = false, length = 15)
     private String userId;
     
     /**
      * 가게 ID (외래키)
      * 최대 20자까지 저장 가능
      */
-    @Column(name = "store_id", nullable = false, length = 20)
+    @Column(name = "STORE_ID2", nullable = false, length = 20)
     private String storeId;
     
     /**
@@ -60,7 +60,7 @@ public class FavoriteStore {
      * 자동 생성되며 수정 불가
      */
     @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
     // Constructors

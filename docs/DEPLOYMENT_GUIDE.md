@@ -27,10 +27,19 @@ export COGNITO_CLIENT_ID="xxxxxxxxxxxxxxxxxxxxxxxxxxx"
 export COGNITO_CLIENT_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxx"
 export COGNITO_DOMAIN="team-fog.auth.ap-northeast-2.amazoncognito.com"
 
-# 데이터베이스 설정
-export DB_HOST="your-rds-endpoint.ap-northeast-2.rds.amazonaws.com"
-export DB_USERNAME="your-db-username"
-export DB_PASSWORD="your-db-password"
+# =============================================================================
+# Oracle Database 설정 (ECS EC2 기반)
+# =============================================================================
+export ORACLE_HOST="primarydb.internal"
+export ORACLE_PORT="1521"
+export ORACLE_SERVICE_NAME="TEAMFOG"
+export ORACLE_USERNAME="user_service"
+export ORACLE_PASSWORD="secure_password_here"
+export ORACLE_STANDBY_HOST="standbydb.internal"
+export ORACLE_STANDBY_PORT="1521"
+export ORACLE_STANDBY_SERVICE_NAME="TEAMFOG"
+export ORACLE_STANDBY_USERNAME="user_service_readonly"
+export ORACLE_STANDBY_PASSWORD="secure_password_here"
 
 # MSA 서비스 URL
 export RESERVATION_SERVICE_URL="http://reservation-service.internal:8080"
@@ -264,9 +273,11 @@ aws logs describe-log-groups --log-group-name-prefix "/ecs/user-service"
 - IAM 권한 확인
 
 ### 2. 데이터베이스 연결 실패
-- RDS 엔드포인트 확인
-- 보안 그룹 설정 확인
+- Oracle DB ECS 서비스 상태 확인
+- PrimaryDB/StandbyDB 엔드포인트 확인
+- 보안 그룹 설정 확인 (포트 1521)
 - 데이터베이스 자격 증명 확인
+- PDB 연결 확인
 
 ### 3. 서비스 간 통신 실패
 - 서비스 URL 확인

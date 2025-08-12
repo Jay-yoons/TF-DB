@@ -7,13 +7,14 @@ import org.springframework.context.annotation.Configuration;
  * Oracle Database 설정 클래스
  * 
  * AWS MSA 환경에서 Oracle DB 연결을 위한 설정을 관리합니다.
+ * 실제 배포환경 설정
  * 
  * @author Team-FOG
  * @version 1.0
  * @since 2025-08-12
  */
-@Configuration
-@ConfigurationProperties(prefix = "oracle")
+// @Configuration
+// @ConfigurationProperties(prefix = "oracle")
 public class OracleConfig {
     
     private String host;

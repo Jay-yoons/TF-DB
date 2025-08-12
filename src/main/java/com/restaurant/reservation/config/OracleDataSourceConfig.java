@@ -14,13 +14,14 @@ import javax.sql.DataSource;
  * Oracle Database DataSource 설정 클래스
  * 
  * AWS MSA 환경에서 Oracle DB 연결을 위한 DataSource를 구성합니다.
+ * 실제 배포환경 설정
  * 
  * @author Team-FOG
  * @version 1.0
  * @since 2025-08-12
  */
-@Configuration
-@ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
+// @Configuration
+// @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
 public class OracleDataSourceConfig {
     
     @Autowired

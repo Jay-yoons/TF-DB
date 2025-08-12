@@ -78,18 +78,6 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
             
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 사용자 정보 반환
-                UserInfoDto dummyUserInfo = new UserInfoDto(
-                    userId, "더미 사용자", "010-1234-5678",
-                    "서울시 강남구", true, 
-                    java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
-                );
-                
-                logger.info("더미 모드 내 정보 조회 완료: userId={}", userId);
-                return ResponseEntity.ok(dummyUserInfo);
-            }
-            
             User user = userService.getUserInfo(userId);
             UserInfoDto userInfo = new UserInfoDto(
                 user.getUserId(), user.getUserName(), user.getPhoneNumber(), 
@@ -149,44 +137,16 @@ public class UserController {
     
     /**
      * 더미 로그인 (개발용)
+     * 실제 배포환경에서는 비활성화됨
      */
     @GetMapping("/login/dummy")
     public ResponseEntity<Map<String, Object>> dummyLogin(@RequestParam String state) {
-        try {
-            logger.info("더미 로그인 요청: state={}", state);
-            
-            // 더미 인증 코드 생성
-            String dummyCode = "dummy-auth-code-" + System.currentTimeMillis();
-            
-            // 인증 코드로 토큰 교환
-            Map<String, Object> tokenResponse = cognitoService.exchangeCodeForToken(dummyCode);
-            
-            // 사용자 정보 추출
-            String idToken = (String) tokenResponse.get("id_token");
-            Map<String, Object> userInfo = cognitoService.getUserInfoFromIdToken(idToken);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("accessToken", tokenResponse.get("access_token"));
-            response.put("idToken", idToken);
-            response.put("refreshToken", tokenResponse.get("refresh_token"));
-            response.put("tokenType", "Bearer");
-            response.put("expiresIn", tokenResponse.get("expires_in"));
-            response.put("userInfo", userInfo);
-            response.put("message", "더미 로그인 성공");
-            
-            logger.info("더미 로그인 완료: userId={}", userInfo.get("sub"));
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("더미 로그인 중 오류 발생", e);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+        // 실제 배포환경에서는 더미 로그인 비활성화
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", "더미 로그인은 개발 환경에서만 사용 가능합니다.");
+        
+        return ResponseEntity.badRequest().body(response);
     }
     
     /**
@@ -293,14 +253,6 @@ public class UserController {
     @GetMapping("/count")
     public ResponseEntity<Map<String, Object>> getUserCount() {
         try {
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 사용자 수 반환
-                Map<String, Object> response = new HashMap<>();
-                response.put("count", 5);
-                logger.info("더미 모드 사용자 수 조회 완료: count=5");
-                return ResponseEntity.ok(response);
-            }
-            
             long count = userService.getUserCount();
             
             Map<String, Object> response = new HashMap<>();
@@ -326,23 +278,6 @@ public class UserController {
             }
 
             logger.info("사용자 정보 수정 요청: userId={}", userId);
-
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 사용자 정보 수정 응답
-                String userName = updateRequest.get("userName");
-                String phoneNumber = updateRequest.get("phoneNumber");
-                
-                UserInfoDto dummyUserInfo = new UserInfoDto(
-                    userId, 
-                    userName != null ? userName : "더미 사용자",
-                    phoneNumber != null ? phoneNumber : "010-1234-5678",
-                    "서울시 강남구", true, 
-                    java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
-                );
-                
-                logger.info("더미 모드 사용자 정보 수정 완료: userId={}", userId);
-                return ResponseEntity.ok(dummyUserInfo);
-            }
 
             // 사용자 정보 수정 로직 구현
             User updatedUser = userService.updateUserInfo(userId, updateRequest);
@@ -374,45 +309,16 @@ public class UserController {
     
     /**
      * 더미 데이터 생성 (개발용)
+     * 실제 배포환경에서는 비활성화됨
      */
     @PostMapping("/dummy/data")
     public ResponseEntity<Map<String, Object>> createDummyData() {
-        try {
-            logger.info("더미 데이터 생성 요청");
-            
-            // 더미 사용자 생성
-            String randomSuffix = String.valueOf((int)(Math.random() * 10000));
-            User dummyUser = userService.signup(
-                "dummy" + randomSuffix,
-                "더미 사용자",
-                "010-1234-" + randomSuffix,
-                "서울시 강남구",
-                "password123"
-            );
-            
-            // 더미 즐겨찾기 데이터 생성
-            userService.addFavoriteStore(dummyUser.getUserId(), "store001");
-            userService.addFavoriteStore(dummyUser.getUserId(), "store002");
-            userService.addFavoriteStore(dummyUser.getUserId(), "store003");
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "더미 데이터 생성 완료");
-            response.put("userId", dummyUser.getUserId());
-            response.put("favoriteCount", userService.getFavoriteStoreCount(dummyUser.getUserId()));
-            
-            logger.info("더미 데이터 생성 완료: userId={}", dummyUser.getUserId());
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("더미 데이터 생성 중 오류 발생", e);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+        // 실제 배포환경에서는 더미 데이터 생성 비활성화
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", "더미 데이터 생성은 개발 환경에서만 사용 가능합니다.");
+        
+        return ResponseEntity.badRequest().body(response);
     }
 
     /**

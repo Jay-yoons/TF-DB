@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
  * @since 2024-01-15
  */
 @Entity
-@Table(name = "users") // 데이터베이스 테이블명 지정
+@Table(name = "USERS") // 데이터베이스 테이블명 지정
 @EntityListeners(AuditingEntityListener.class) // 생성일시/수정일시 자동 관리
 public class User {
     
@@ -37,42 +37,42 @@ public class User {
      * 최대 15자까지 저장 가능
      */
     @Id
-    @Column(name = "user_id", length = 15)
+    @Column(name = "USER_ID", length = 15)
     private String userId;
     
     /**
      * 사용자 이름
      * 필수 입력 항목, 최대 20자
      */
-    @Column(name = "user_name", nullable = false, length = 20)
+    @Column(name = "USER_NAME", nullable = false, length = 20)
     private String userName;
     
     /**
      * 전화번호
      * 필수 입력 항목, 고유값, 최대 20자
      */
-    @Column(name = "phone_number", nullable = false, unique = true, length = 20)
+    @Column(name = "PHONE_NUMBER", nullable = false, unique = true, length = 20)
     private String phoneNumber;
     
     /**
      * 사용자 주소
      * 선택 입력 항목, 최대 50자
      */
-    @Column(name = "user_location", length = 50)
+    @Column(name = "USER_LOCATION", length = 50)
     private String userLocation;
     
     /**
      * 암호화된 비밀번호
      * 필수 입력 항목, 최대 255자 (암호화로 인한 길이 증가)
      */
-    @Column(name = "password", nullable = false, length = 255)
+    @Column(name = "PASSWORD", nullable = false, length = 255)
     private String password;
     
     /**
      * 계정 활성화 상태
      * 기본값: true (활성화)
      */
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "IS_ACTIVE", nullable = false)
     private boolean isActive = true;
     
     /**
@@ -80,7 +80,7 @@ public class User {
      * 자동 생성되며 수정 불가
      */
     @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
     /**
@@ -88,7 +88,7 @@ public class User {
      * 자동 업데이트
      */
     @LastModifiedDate
-    @Column(name = "updated_at")
+    @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
     
     // Constructors
