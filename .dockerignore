@@ -1,0 +1,12 @@
+# Gradle caches/build outputs
+.gradle
+build
+out
+
+# IDE files
+**/.idea
+**/*.iml
+**/.vscode
+
+# Misc
+**/.DS_Store
