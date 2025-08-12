@@ -37,6 +37,11 @@ jobs:
       - name: Set up Gradle (cache)
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Fix gradlew EOL and permissions
+        run: |
+          sed -i 's/\r$//' gradlew
+          chmod +x gradlew
+
       - name: Build JAR
         run: ./gradlew clean bootJar --no-daemon
 
