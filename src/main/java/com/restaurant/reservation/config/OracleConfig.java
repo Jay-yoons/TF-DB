@@ -1,123 +1,167 @@
 package com.restaurant.reservation.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-
-import javax.sql.DataSource;
-import java.sql.SQLException;
 
 /**
- * Oracle DB 특화 설정
- * AWS ECS 환경에서 Oracle DB 연결을 위한 설정
+ * Oracle Database 설정 클래스
+ * 
+ * AWS MSA 환경에서 Oracle DB 연결을 위한 설정을 관리합니다.
+ * 
+ * @author Team-FOG
+ * @version 1.0
+ * @since 2025-08-12
  */
 @Configuration
-@Profile("prod")
+@ConfigurationProperties(prefix = "oracle")
 public class OracleConfig {
-
-    /**
-     * Oracle DB 연결 풀 모니터링
-     */
-    @Bean
-    @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
-    public DataSourceHealthIndicator oracleDataSourceHealthIndicator(DataSource dataSource) {
-        return new DataSourceHealthIndicator(dataSource, "SELECT 1 FROM DUAL");
+    
+    private String host;
+    private int port;
+    private String serviceName;
+    private String username;
+    private String password;
+    private String url;
+    private int maxPoolSize;
+    private int minPoolSize;
+    private int connectionTimeout;
+    private int idleTimeout;
+    private boolean sslEnabled;
+    private String sslTrustStore;
+    private String sslTrustStorePassword;
+    
+    // 기본값 설정
+    public OracleConfig() {
+        this.port = 1521;
+        this.maxPoolSize = 20;
+        this.minPoolSize = 5;
+        this.connectionTimeout = 30000;
+        this.idleTimeout = 600000;
+        this.sslEnabled = false;
     }
-
-    /**
-     * Oracle DB 특화 설정
-     */
-    @Bean
-    @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
-    public OracleConnectionProperties oracleConnectionProperties() {
-        return new OracleConnectionProperties();
+    
+    // Getter and Setter methods
+    public String getHost() {
+        return host;
     }
-
-    /**
-     * Oracle DB 연결 풀 설정
-     */
-    @Bean
-    @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "prod")
-    public OraclePoolConfig oraclePoolConfig() {
-        return new OraclePoolConfig();
+    
+    public void setHost(String host) {
+        this.host = host;
     }
-
-    /**
-     * Oracle DB 연결 속성
-     */
-    public static class OracleConnectionProperties {
-        private int timeout = 30;
-        private int initialSize = 5;
-        private int maxSize = 20;
-        private int minIdle = 5;
-        private boolean ssl = false;
-        private boolean encryption = false;
-
-        // Getters and Setters
-        public int getTimeout() { return timeout; }
-        public void setTimeout(int timeout) { this.timeout = timeout; }
-        public int getInitialSize() { return initialSize; }
-        public void setInitialSize(int initialSize) { this.initialSize = initialSize; }
-        public int getMaxSize() { return maxSize; }
-        public void setMaxSize(int maxSize) { this.maxSize = maxSize; }
-        public int getMinIdle() { return minIdle; }
-        public void setMinIdle(int minIdle) { this.minIdle = minIdle; }
-        public boolean isSsl() { return ssl; }
-        public void setSsl(boolean ssl) { this.ssl = ssl; }
-        public boolean isEncryption() { return encryption; }
-        public void setEncryption(boolean encryption) { this.encryption = encryption; }
+    
+    public int getPort() {
+        return port;
     }
-
-    /**
-     * Oracle DB 연결 풀 설정
-     */
-    public static class OraclePoolConfig {
-        private int maximumPoolSize = 20;
-        private int minimumIdle = 5;
-        private int connectionTimeout = 30000;
-        private int idleTimeout = 600000;
-        private int maxLifetime = 1800000;
-        private int leakDetectionThreshold = 60000;
-
-        // Getters and Setters
-        public int getMaximumPoolSize() { return maximumPoolSize; }
-        public void setMaximumPoolSize(int maximumPoolSize) { this.maximumPoolSize = maximumPoolSize; }
-        public int getMinimumIdle() { return minimumIdle; }
-        public void setMinimumIdle(int minimumIdle) { this.minimumIdle = minimumIdle; }
-        public int getConnectionTimeout() { return connectionTimeout; }
-        public void setConnectionTimeout(int connectionTimeout) { this.connectionTimeout = connectionTimeout; }
-        public int getIdleTimeout() { return idleTimeout; }
-        public void setIdleTimeout(int idleTimeout) { this.idleTimeout = idleTimeout; }
-        public int getMaxLifetime() { return maxLifetime; }
-        public void setMaxLifetime(int maxLifetime) { this.maxLifetime = maxLifetime; }
-        public int getLeakDetectionThreshold() { return leakDetectionThreshold; }
-        public void setLeakDetectionThreshold(int leakDetectionThreshold) { this.leakDetectionThreshold = leakDetectionThreshold; }
+    
+    public void setPort(int port) {
+        this.port = port;
     }
-
-    /**
-     * DataSource 헬스체크 인디케이터
-     */
-    public static class DataSourceHealthIndicator {
-        private final DataSource dataSource;
-        private final String validationQuery;
-
-        public DataSourceHealthIndicator(DataSource dataSource, String validationQuery) {
-            this.dataSource = dataSource;
-            this.validationQuery = validationQuery;
+    
+    public String getServiceName() {
+        return serviceName;
+    }
+    
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+    
+    public String getUsername() {
+        return username;
+    }
+    
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    
+    public String getPassword() {
+        return password;
+    }
+    
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    
+    public String getUrl() {
+        if (url != null && !url.isEmpty()) {
+            return url;
         }
-
-        public boolean isHealthy() {
-            try (var connection = dataSource.getConnection();
-                 var statement = connection.createStatement();
-                 var resultSet = statement.executeQuery(validationQuery)) {
-                return resultSet.next();
-            } catch (SQLException e) {
-                return false;
-            }
-        }
-
-        public DataSource getDataSource() { return dataSource; }
-        public String getValidationQuery() { return validationQuery; }
+        // JDBC URL 자동 생성
+        return String.format("jdbc:oracle:thin:@%s:%d/%s", host, port, serviceName);
+    }
+    
+    public void setUrl(String url) {
+        this.url = url;
+    }
+    
+    public int getMaxPoolSize() {
+        return maxPoolSize;
+    }
+    
+    public void setMaxPoolSize(int maxPoolSize) {
+        this.maxPoolSize = maxPoolSize;
+    }
+    
+    public int getMinPoolSize() {
+        return minPoolSize;
+    }
+    
+    public void setMinPoolSize(int minPoolSize) {
+        this.minPoolSize = minPoolSize;
+    }
+    
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+    
+    public void setConnectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+    
+    public int getIdleTimeout() {
+        return idleTimeout;
+    }
+    
+    public void setIdleTimeout(int idleTimeout) {
+        this.idleTimeout = idleTimeout;
+    }
+    
+    public boolean isSslEnabled() {
+        return sslEnabled;
+    }
+    
+    public void setSslEnabled(boolean sslEnabled) {
+        this.sslEnabled = sslEnabled;
+    }
+    
+    public String getSslTrustStore() {
+        return sslTrustStore;
+    }
+    
+    public void setSslTrustStore(String sslTrustStore) {
+        this.sslTrustStore = sslTrustStore;
+    }
+    
+    public String getSslTrustStorePassword() {
+        return sslTrustStorePassword;
+    }
+    
+    public void setSslTrustStorePassword(String sslTrustStorePassword) {
+        this.sslTrustStorePassword = sslTrustStorePassword;
+    }
+    
+    @Override
+    public String toString() {
+        return "OracleConfig{" +
+                "host='" + host + '\'' +
+                ", port=" + port +
+                ", serviceName='" + serviceName + '\'' +
+                ", username='" + username + '\'' +
+                ", url='" + getUrl() + '\'' +
+                ", maxPoolSize=" + maxPoolSize +
+                ", minPoolSize=" + minPoolSize +
+                ", connectionTimeout=" + connectionTimeout +
+                ", idleTimeout=" + idleTimeout +
+                ", sslEnabled=" + sslEnabled +
+                '}';
     }
 }

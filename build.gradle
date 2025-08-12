@@ -63,13 +63,16 @@ dependencies {
     implementation 'org.springframework.data:spring-data-jpa'
 
     // =============================================================================
-    // JWT 토큰 기반 인증 시스템
+    // AWS Cognito 인증 시스템
     // =============================================================================
     
-    // JWT 라이브러리
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    // AWS SDK for Java v2
+    implementation 'software.amazon.awssdk:cognitoidentityprovider:2.24.12'
+    implementation 'software.amazon.awssdk:sts:2.24.12'
+    
+    // AWS Cognito JWT 검증
+    implementation 'com.auth0:java-jwt:4.4.0'
+    implementation 'com.auth0:jwks-rsa:0.22.1'
 
     // =============================================================================
     // 모니터링 및 헬스체크
@@ -82,13 +85,11 @@ dependencies {
     // 데이터베이스 의존성
     // =============================================================================
 
-    // Oracle DB 의존성 (운영 환경에서만 사용)
-    // 현재는 Maven Repository 인증 문제로 주석 처리
-    // 실제 운영 시에는 주석을 해제하고 적절한 버전을 사용
-    // implementation 'com.oracle.database.jdbc:ojdbc11:23.3.0.23.09'
-    // implementation 'com.oracle.database.security:oraclepki:23.3.0.23.09'
-    // implementation 'com.oracle.database.security:osdt_core:23.3.0.23.09'
-    // implementation 'com.oracle.database.security:osdt_cert:23.3.0.23.09'
+    // Oracle DB 의존성 (AWS MSA 프로덕션 환경용)
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11:23.3.0.23.09'
+    runtimeOnly 'com.oracle.database.security:oraclepki:23.3.0.23.09'
+    runtimeOnly 'com.oracle.database.security:osdt_core:23.3.0.23.09'
+    runtimeOnly 'com.oracle.database.security:osdt_cert:23.3.0.23.09'
 
     // H2 DB (개발 환경용 인메모리 데이터베이스)
     runtimeOnly 'com.h2database:h2'

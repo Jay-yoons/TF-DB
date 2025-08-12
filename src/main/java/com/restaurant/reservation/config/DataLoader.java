@@ -1,7 +1,9 @@
 package com.restaurant.reservation.config;
 
 import com.restaurant.reservation.entity.User;
+import com.restaurant.reservation.entity.FavoriteStore;
 import com.restaurant.reservation.repository.UserRepository;
+import com.restaurant.reservation.repository.FavoriteStoreRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -14,10 +16,12 @@ public class DataLoader implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);
 
     private final UserRepository userRepository;
+    private final FavoriteStoreRepository favoriteStoreRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public DataLoader(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public DataLoader(UserRepository userRepository, FavoriteStoreRepository favoriteStoreRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.favoriteStoreRepository = favoriteStoreRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -56,6 +60,25 @@ public class DataLoader implements CommandLineRunner {
         user3.setActive(true);
         userRepository.save(user3);
         
-        logger.info("User Service 샘플 데이터 로딩 완료: {}명", userRepository.count());
+        // 기존 즐겨찾기 데이터 삭제
+        favoriteStoreRepository.deleteAll();
+        
+        // 샘플 즐겨찾기 데이터 생성
+        FavoriteStore fav1 = new FavoriteStore("user001", "store001");
+        favoriteStoreRepository.save(fav1);
+        
+        FavoriteStore fav2 = new FavoriteStore("user001", "store002");
+        favoriteStoreRepository.save(fav2);
+        
+        FavoriteStore fav3 = new FavoriteStore("user002", "store003");
+        favoriteStoreRepository.save(fav3);
+        
+        FavoriteStore fav4 = new FavoriteStore("user003", "store001");
+        favoriteStoreRepository.save(fav4);
+        
+        FavoriteStore fav5 = new FavoriteStore("user003", "store004");
+        favoriteStoreRepository.save(fav5);
+        
+        logger.info("User Service 샘플 데이터 로딩 완료: {}명, 즐겨찾기 {}개", userRepository.count(), favoriteStoreRepository.count());
     }
 } 

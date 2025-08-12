@@ -9,15 +9,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.restaurant.reservation.config.CognitoAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CognitoAuthenticationFilter cognitoAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    public SecurityConfig(CognitoAuthenticationFilter cognitoAuthenticationFilter) {
+        this.cognitoAuthenticationFilter = cognitoAuthenticationFilter;
     }
 
     @Bean
@@ -47,7 +48,9 @@ public class SecurityConfig {
                 // =============================================================================
                 // 공개 API (인증 불필요)
                 // =============================================================================
-                .requestMatchers("/login/status", "/login/logout", "/users/count", "/users", "/api/auth/**").permitAll()
+                .requestMatchers("/login/status", "/login/logout", "/users/count", "/users", "/api/auth/**", 
+                               "/api/users/login", "/api/users/login/url", "/api/users/login/callback", 
+                               "/api/users/login/dummy", "/api/users/dummy/data", "/api/users/signup", "/health").permitAll()
                 
                 // =============================================================================
                 // MSA 연동 API (인증 불필요)
@@ -72,7 +75,7 @@ public class SecurityConfig {
             .headers(headers -> headers
                 .frameOptions().sameOrigin()
             )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(cognitoAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

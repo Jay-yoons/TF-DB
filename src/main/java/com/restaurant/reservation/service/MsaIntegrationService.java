@@ -1,7 +1,6 @@
 package com.restaurant.reservation.service;
 
 import com.restaurant.reservation.config.MsaConfig;
-import com.restaurant.reservation.service.JwtService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -37,12 +36,10 @@ public class MsaIntegrationService {
     
     private final RestTemplate restTemplate;
     private final MsaConfig msaConfig;
-    private final JwtService jwtService;
     
-    public MsaIntegrationService(RestTemplate restTemplate, MsaConfig msaConfig, JwtService jwtService) {
+    public MsaIntegrationService(RestTemplate restTemplate, MsaConfig msaConfig) {
         this.restTemplate = restTemplate;
         this.msaConfig = msaConfig;
-        this.jwtService = jwtService;
     }
     
     /**
@@ -75,13 +72,9 @@ public class MsaIntegrationService {
         try {
             logger.debug("외부 서비스 호출: {} {} -> {}", method, fullUrl, serviceName);
             
-            // JWT 토큰 생성 (서비스 간 통신용)
-            String serviceToken = jwtService.generateServiceToken(serviceName);
-            
             // HTTP 헤더 설정
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(serviceToken);
             headers.set("X-Service-Name", "restaurant-reservation-service");
             headers.set("X-Request-ID", generateRequestId());
             
@@ -251,33 +244,7 @@ public class MsaIntegrationService {
         }
     }
     
-    /**
-     * 외부 서비스 토큰을 검증합니다.
-     * 
-     * @param token 검증할 토큰
-     * @param serviceName 서비스 이름
-     * @return 검증 결과
-     */
-    public boolean validateExternalServiceToken(String token, String serviceName) {
-        try {
-            logger.debug("외부 서비스 토큰 검증: serviceName={}", serviceName);
-            
-            if (!jwtService.validateToken(token)) {
-                logger.warn("토큰 검증 실패: serviceName={}", serviceName);
-                return false;
-            }
-            
-            String tokenServiceName = jwtService.getServiceNameFromToken(token);
-            boolean isValid = serviceName.equals(tokenServiceName);
-            
-            logger.debug("외부 서비스 토큰 검증 완료: serviceName={}, isValid={}", serviceName, isValid);
-            return isValid;
-            
-        } catch (Exception e) {
-            logger.error("외부 서비스 토큰 검증 중 오류: serviceName={} - {}", serviceName, e.getMessage());
-            return false;
-        }
-    }
+
     
     // =============================================================================
     // 유틸리티 메서드

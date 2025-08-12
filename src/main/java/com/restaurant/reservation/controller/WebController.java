@@ -1,43 +1,33 @@
 package com.restaurant.reservation.controller;
 
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 웹 페이지 라우팅을 위한 컨트롤러
+ * Vue.js 프론트엔드로 전환으로 인해 HTML 페이지 반환 대신 API 응답으로 변경
+ */
+@RestController
 public class WebController {
 
     @GetMapping("/")
-    public String index() {
-        return "index";
+    public ResponseEntity<Map<String, Object>> index() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Team-FOG User Service API");
+        response.put("status", "running");
+        response.put("version", "2.0");
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/login")
-    public String login() {
-        return "login";
-    }
-
-    @GetMapping("/signup")
-    public String signup() {
-        return "signup";
-    }
-
-    @GetMapping("/mypage")
-    public String mypage() {
-        return "mypage";
-    }
-
-    @GetMapping("/restaurants")
-    public String restaurants() {
-        return "restaurants";
-    }
-
-    @GetMapping("/reservations")
-    public String reservations() {
-        return "reservations";
-    }
-
-    @GetMapping("/logout-page")
-    public String logoutPage() {
-        return "redirect:/";
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("service", "user-service");
+        return ResponseEntity.ok(response);
     }
 } 
