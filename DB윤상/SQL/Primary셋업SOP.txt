@@ -63,6 +63,24 @@ ALTER PLUGGABLE DATABASE PDB_STORE SAVE STATE
 |                                                              |
 |                                                              |
 *****************************************************************
+
+1. 현재 타임존 확인
+timedatectl
+2. 대한민국 시간으로 변경
+sudo timedatectl set-timezone Asia/Seoul
+timedatectl
+→ Time zone: Asia/Seoul (KST, +0900) 로 나오면 완료.
+
+SELECT SYSDATE, SYSTIMESTAMP FROM DUAL;
+OS와 같아야 정상.
+
+ALTER SESSION SET TIME_ZONE = 'Asia/Seoul';
+시스템 타임존 (DB 전체 기본값 변경)
+
+ALTER DATABASE SET TIME_ZONE = 'Asia/Seoul';
+시스템 타임존 변경 후 DB 재시작 필요.
+
+ALTER DATABASE SET TIME_ZONE = '+09:00';
 ---------------------------------------------PDB_STORE-----------------------------------------------------
 ALTER SESSION SET CONTAINER = PDB_STORE;
 CREATE TABLE STORES 
