@@ -4,7 +4,10 @@ import fog.booking_service.domain.Booking;
 import fog.booking_service.domain.BookingStateCode;
 import fog.booking_service.dto.BookingListResponse;
 import fog.booking_service.dto.BookingRequest;
+import fog.booking_service.dto.BookingResponse;
 import fog.booking_service.repositoroy.BookingRepository;
+import fog.booking_service.repositoroy.BookingStateCodeRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
+    private final BookingStateCodeRepository stateCodeRepository;
 
     /*
     예약 리스트 조회
@@ -35,7 +39,7 @@ public class BookingService {
                         .bookingNum(b.getBookingNum())
                         .bookingDate(b.getBookingDate())
                         .storeId(b.getStoreId())
-                        .bookingStateCode(b.getBookingStateCode())
+                        .bookingState(b.getBookingStateCode().getStateName())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -43,9 +47,17 @@ public class BookingService {
     /*
     예약 상세 조회
      */
-    public Booking getBooking(Long bookingNum) {
+    public BookingResponse getBooking(Long bookingNum) {
         log.info("예약 상세 조회");
-        return bookingRepository.findByBookingNum(bookingNum);
+        Booking booking = bookingRepository.findById(bookingNum)
+                .orElseThrow(() -> new EntityNotFoundException("Booking is not found"));
+        return BookingResponse.builder()
+                .bookingNum(booking.getBookingNum())
+                .bookingDate(booking.getBookingDate())
+                .storeId(booking.getStoreId())
+                .bookingState(booking.getBookingStateCode().getStateName())
+                .count(booking.getCount())
+                .build();
     }
 
     /*
@@ -54,7 +66,15 @@ public class BookingService {
     public Booking makeBooking(BookingRequest request) {
 
         log.info("예약 생성");
-        Booking booking = new Booking(request.getBookingDate(), request.getUserId(), request.getStoreId(), request.getCount());
+        BookingStateCode stateCode = stateCodeRepository.findById(1)
+                .orElseThrow(() -> new EntityNotFoundException("code 1 is not found"));
+        Booking booking = Booking.builder()
+                .userId(request.getUserId())
+                .storeId(request.getStoreId())
+                .bookingDate(request.getBookingDate())
+                .count(request.getCount())
+                .stateCode(stateCode)
+                .build();
         return bookingRepository.save(booking);
     }
 
@@ -63,7 +83,10 @@ public class BookingService {
      */
     public void cancelBooking(Long bookingNum) {
         log.info("예약 취소");
-        Booking booking = bookingRepository.findByBookingNum(bookingNum);
-        booking.setBookingStateCode(BookingStateCode.CANCALLED);
+        Booking booking = bookingRepository.findById(bookingNum)
+                .orElseThrow(() -> new EntityNotFoundException("Booking is not found"));
+        BookingStateCode stateCode = stateCodeRepository.findById(1)
+                .orElseThrow(() -> new EntityNotFoundException("code 1 is not found"));
+        booking.setBookingStateCode(stateCode);
     }
 }

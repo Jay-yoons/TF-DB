@@ -6,9 +6,9 @@
         <div><strong>예약 번호:</strong> {{ booking.bookingNum }}</div>
         <div><strong>매장 ID:</strong> {{ booking.storeId }}</div>
         <div><strong>예약 날짜:</strong> {{ booking.bookingDate }}</div>
-        <div><strong>예약 상태:</strong> {{ booking.bookingStateCode }}</div>
+        <div><strong>예약 상태:</strong> {{ booking.bookingState }}</div>
         <div><strong>좌석 수:</strong> {{ booking.count }}</div> </div>
-      <div v-if="booking.bookingStateCode === 'CONFIRMED'">
+      <div v-if="booking.bookingState === 'CONFIRMED'">
         <button @click="cancelBooking" class="cancel-button">예약 취소</button>
       </div>
       <p v-else>취소할 수 없는 예약입니다.</p>

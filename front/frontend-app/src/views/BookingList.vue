@@ -13,7 +13,7 @@
           <div class="card-body">
             <div><strong>매장 ID:</strong> {{ booking.storeId }}</div>
             <div><strong>예약 날짜:</strong> {{ booking.bookingDate }}</div>
-            <div><strong>예약 상태:</strong> {{ booking.bookingStateCode }}</div>
+            <div><strong>예약 상태:</strong> {{ booking.bookingState }}</div>
           </div>
         </div>
       </li>
@@ -28,7 +28,7 @@ export default {
   data() {
     return {
       bookings: [],
-      userId: 'user_a',
+      userId: 'user02',
     };
   },
   mounted() {

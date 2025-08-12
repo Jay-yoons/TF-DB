@@ -3,6 +3,7 @@ package fog.booking_service.controller;
 import fog.booking_service.domain.Booking;
 import fog.booking_service.dto.BookingListResponse;
 import fog.booking_service.dto.BookingRequest;
+import fog.booking_service.dto.BookingResponse;
 import fog.booking_service.servivce.BookingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,7 @@ public class BookingController {
      * 예약 상세 조회
      */
     @GetMapping("/bookings/{bookingNum}")
-    public Booking findBooking(@PathVariable Long bookingNum) {
+    public BookingResponse findBooking(@PathVariable Long bookingNum) {
         return bookingService.getBooking(bookingNum);
     }
 
@@ -46,7 +47,7 @@ public class BookingController {
      * 예약 취소
      */
     @PatchMapping("/bookings/{bookingNum}")
-    public Booking cancelBooking(@PathVariable Long bookingNum) {
+    public BookingResponse cancelBooking(@PathVariable Long bookingNum) {
         bookingService.cancelBooking(bookingNum);
         return bookingService.getBooking(bookingNum);
     }
