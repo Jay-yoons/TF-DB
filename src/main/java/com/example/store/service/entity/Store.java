@@ -3,32 +3,35 @@ package com.example.store.service.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * STORES 테이블 매핑 엔티티.
+ * - PK: STORE_ID (String)
+ * - 카테고리 코드: Integer
+ * - 영업시간은 스키마 정의에 따라 문자열로 저장한다.
+ */
 @Entity
-@Table(name = "store")
+@Table(name = "STORES")
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Store {
     @Id
-    @Column(name = "STORE_ID")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long storeId;
+    @Column(name = "STORE_ID", length = 20, nullable = false)
+    private String storeId; // DB: VARCHAR2(20)
 
-    @Column(name = "STORE_NAME")
+    @Column(name = "STORE_NAME", length = 50)
     private String storeName;
     
     @Column(name = "CATEGORY_CODE")
-    private String categoryCode;
+    private Integer categoryCode; // DB: INTEGER
     
-    @Column(name = "STORE_LOCATION")
+    @Column(name = "STORE_LOCATION", length = 50)
     private String storeLocation; // 예: "서울 강남구"
     
     @Column(name = "SEAT_NUM")
     private int seatNum;
     
-    @Column(name = "SERVICE_TIME")
-    private String serviceTime; // 영업시간 문자열 예: "09:00~21:00"
-
-    // 여유좌석, 대기시간 등은 실시간이므로 별도 서비스에서 관리 예정
+    @Column(name = "SERVICE_TIME", length = 50)
+    private String serviceTime; // DB: VARCHAR2(50)
 }

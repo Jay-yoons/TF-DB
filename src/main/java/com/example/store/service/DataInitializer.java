@@ -3,11 +3,14 @@ package com.example.store.service;
 import com.example.store.service.entity.Store;
 import com.example.store.service.entity.StoreSeat;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
 import com.example.store.service.repository.StoreRepository;
 import com.example.store.service.repository.StoreSeatRepository;
 
-@Component
+/**
+ * (비활성화 상태) 개발 편의를 위한 초기 데이터 주입 컴포넌트.
+ * - 현재는 빈 등록이 되어 있지 않아 실행되지 않는다.
+ * - 필요 시 dev 프로필에서만 동작하도록 @Profile("dev")와 @Component를 부여해 사용할 수 있다.
+ */
 public class DataInitializer implements CommandLineRunner {
 
     private final StoreRepository storeRepository;
@@ -22,24 +25,27 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // 테스트용 가게 데이터 추가
         Store store1 = Store.builder()
+                .storeId("A001")
                 .storeName("스타벅스 강남점")
-                .categoryCode("CAFE")
+                .categoryCode(1)
                 .storeLocation("서울 강남구")
                 .seatNum(50)
                 .serviceTime("07:00~22:00")
                 .build();
 
         Store store2 = Store.builder()
+                .storeId("A002")
                 .storeName("맥도날드 강남점")
-                .categoryCode("FASTFOOD")
+                .categoryCode(2)
                 .storeLocation("서울 강남구")
                 .seatNum(30)
                 .serviceTime("06:00~24:00")
                 .build();
 
         Store store3 = Store.builder()
+                .storeId("A003")
                 .storeName("올리브영 강남점")
-                .categoryCode("COSMETIC")
+                .categoryCode(3)
                 .storeLocation("서울 강남구")
                 .seatNum(0)
                 .serviceTime("10:00~22:00")
