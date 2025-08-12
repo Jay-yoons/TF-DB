@@ -63,11 +63,15 @@ public class BookingService {
     /*
     예약 생성
      */
-    public Booking makeBooking(BookingRequest request) {
+    public BookingResponse makeBooking(BookingRequest request) {
 
         log.info("예약 생성");
-        BookingStateCode stateCode = stateCodeRepository.findById(1)
-                .orElseThrow(() -> new EntityNotFoundException("code 1 is not found"));
+        BookingStateCode stateCode = stateCodeRepository.findById(0)
+                .orElseThrow(() -> new EntityNotFoundException("code 0 is not found"));
+        log.info("userId={}", request.getUserId());
+        log.info("storeId={}", request.getStoreId());
+        log.info("bookingDate={}", request.getBookingDate());
+        log.info("count={}", request.getCount());
         Booking booking = Booking.builder()
                 .userId(request.getUserId())
                 .storeId(request.getStoreId())
@@ -75,7 +79,8 @@ public class BookingService {
                 .count(request.getCount())
                 .stateCode(stateCode)
                 .build();
-        return bookingRepository.save(booking);
+        Long bookingNum = bookingRepository.save(booking).getBookingNum();
+        return getBooking(bookingNum);
     }
 
     /*

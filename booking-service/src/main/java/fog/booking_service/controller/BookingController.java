@@ -39,7 +39,11 @@ public class BookingController {
      * 예약 생성
      */
     @PostMapping("/bookings/new")
-    public Booking booking(BookingRequest request) {
+    public BookingResponse booking(@RequestBody BookingRequest request) {
+        log.info("userId={}", request.getUserId());
+        log.info("storeId={}", request.getStoreId());
+        log.info("bookingDate={}", request.getBookingDate());
+        log.info("count={}", request.getCount());
         return bookingService.makeBooking(request);
     }
 
