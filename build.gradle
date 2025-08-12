@@ -2,11 +2,11 @@
  * User Service - Gradle Build Configuration
  * 
  * 이 파일은 User Service의 빌드 설정을 관리합니다.
- * Spring Boot 3.4.0과 Java 21을 사용하여 구성되었습니다.
+ * Spring Boot 3.5.4와 Java 17을 사용하여 구성되었습니다.
  * 
  * 주요 설정:
- * - Java 21 사용
- * - Spring Boot 3.4.0
+ * - Java 17 사용 (팀원들과 통일)
+ * - Spring Boot 3.5.4 (팀원들과 통일)
  * - Spring Dependency Management 1.1.5
  * - JPA, Security, Web, Thymeleaf 스타터 포함
  * - Oracle DB 의존성 (운영 환경용, 현재 주석 처리)
@@ -16,17 +16,18 @@
 
 plugins {
     id 'java'                                    // Java 플러그인
-    id 'org.springframework.boot' version '3.4.0'           // Spring Boot 플러그인
-    id 'io.spring.dependency-management' version '1.1.5'    // Spring 의존성 관리 플러그인
+    id 'org.springframework.boot' version '3.5.4'           // Spring Boot 플러그인 (팀원들과 통일)
+    id 'io.spring.dependency-management' version '1.1.7'    // Spring 의존성 관리 플러그인 (팀원들과 통일)
 }
 
 // 프로젝트 기본 정보
 group = 'com.restaurant'                         // 그룹 ID
 version = '0.0.1-SNAPSHOT'                      // 버전 (스냅샷)
 
-// Java 버전 설정
+// Java 버전 설정 (팀원들과 통일)
 java {
-    sourceCompatibility = JavaVersion.VERSION_21  // Java 21 사용
+    sourceCompatibility = JavaVersion.VERSION_17  // Java 17 사용 (팀원들과 통일)
+    targetCompatibility = JavaVersion.VERSION_17  // Java 17 사용 (팀원들과 통일)
 }
 
 configurations {
