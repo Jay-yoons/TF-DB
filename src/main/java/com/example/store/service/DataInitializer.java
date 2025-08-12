@@ -3,13 +3,14 @@ package com.example.store.service;
 import com.example.store.service.entity.Store;
 import com.example.store.service.entity.StoreSeat;
 import org.springframework.boot.CommandLineRunner;
+// import org.springframework.context.annotation.Profile;
+// import org.springframework.stereotype.Component;
 import com.example.store.service.repository.StoreRepository;
 import com.example.store.service.repository.StoreSeatRepository;
 
 /**
- * (비활성화 상태) 개발 편의를 위한 초기 데이터 주입 컴포넌트.
- * - 현재는 빈 등록이 되어 있지 않아 실행되지 않는다.
- * - 필요 시 dev 프로필에서만 동작하도록 @Profile("dev")와 @Component를 부여해 사용할 수 있다.
+ * 개발 편의를 위한 초기 데이터 주입 컴포넌트.
+ * 현재 비활성화 상태입니다. 필요 시 @Profile("dev"), @Component 추가로 활성화하세요.
  */
 public class DataInitializer implements CommandLineRunner {
 
