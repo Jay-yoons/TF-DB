@@ -1,0 +1,16 @@
+컨트롤 파일의 경우 모두 /home/oracle/backup 디렉토리에 백업을 완료 하였습니다.
+하지만 주기적인 백업이 아닙니다. 따라서 RAM 스크립트를 통하여 백업을 구축할 예정에 있습니다.
+
+Redo file의 경우 모두 2그룹에 2파일로 구축을 완료 하였습니다. 특이사항 없이 작동 되는 것을 확인 하였습니다.
+사용 명령은 아래와 같습니다.
+select group#, thread#, sequence#, bytes/1024/1024 mbyte, members, status 
+from v$log 
+order by thread#, group#;
+
+select * from v$logfile;
+
+alter database add logfile group 3
+('/u01/app/oracle/oradata/testdb/disk1/redo03a.log',
+'/u01/app/oracle/oradata/testdb/disk2/redo03a.log') size 30m;
+
+ALTER DATABSE DROP GROUP 1;
