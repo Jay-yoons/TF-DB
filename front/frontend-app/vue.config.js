@@ -3,16 +3,26 @@ const { defineConfig } = require('@vue/cli-service');
 module.exports = defineConfig({
   publicPath: '/',
   devServer: {
+    port: 3000, // 포트 설정을 프록시 설정과 함께 통합
     proxy: {
-      // 스토어 서비스 관련 API 요청을 localhost:8081로 프록시
-      // 이 규칙이 더 구체적이므로 먼저 위치해야 합니다.
+      '/api/auth': {
+        target: 'http://localhost:8085',
+        changeOrigin: true,
+        loglevel: 'debug'
+      },
+      '/api/users': {
+        target: 'http://localhost:8085',
+        changeOrigin: true,
+        loglevel: 'debug'
+      },
       '/api/stores': {
         target: 'http://localhost:8081',
         changeOrigin: true,
-        // pathRewrite: {
-        //   '^/api/stores': '/stores'
-        // },
-        // 요청 로그를 보려면 주석을 해제하세요
+        loglevel: 'debug'
+      },
+      '/api/reviews': {
+        target: 'http://localhost:8081',
+        changeOrigin: true,
         loglevel: 'debug'
       },
       // 나머지 모든 /api 요청을 localhost:8080으로 프록시

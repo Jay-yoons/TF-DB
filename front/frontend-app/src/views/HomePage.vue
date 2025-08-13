@@ -1,39 +1,29 @@
 <template>
   <div class="bg-gray-100 min-h-screen">
-    <!-- 상단 네비게이션 바 -->
     <nav class="bg-white shadow-md p-4 flex justify-between items-center">
-      <div class="flex items-center space-x-2">
-        <!-- 아이콘과 서비스명 -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500">
-          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-          <line x1="12" x2="12" y1="19" y2="22" />
-        </svg>
-        <span class="text-xl font-bold text-gray-800">전국 레스토랑 예약</span>
+      <div class="flex items-center">
+        <router-link to="/" class="text-2xl font-bold text-gray-800">
+          <span class="text-green-500">Restaurant</span> Reservation
+        </router-link>
       </div>
-      <!-- 홈, 마이페이지, 로그인 링크 -->
       <div class="flex items-center space-x-4 text-sm text-gray-600">
-        <!-- 홈 링크 -->
-        <a href="#" class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+        <router-link to="/" class="hover:text-blue-500 transition-colors">
+          홈
+        </router-link>
+        <router-link to="/mypage" class="hover:text-blue-500 transition-colors">
+          마이페이지
+        </router-link>
+        <button v-if="isLoggedIn" @click="logout"
+          class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          <span>홈</span>
-        </a>
-        <!-- 마이페이지 링크 -->
-        <a href="#" class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          <span>마이페이지</span>
-        </a>
-        <!-- 로그인 링크 -->
-        <a href="#" class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+          <span>로그아웃</span>
+        </button>
+        <a v-else :href="loginUrl" class="flex items-center space-x-1 hover:text-blue-500 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
@@ -44,14 +34,9 @@
         </a>
       </div>
     </nav>
-
-    <!-- 메인 콘텐츠 영역 -->
     <main class="container mx-auto p-8">
       <h2 class="text-2xl font-bold text-gray-700 mb-6">주요 현황</h2>
-      <!-- 통계 카드 섹션 -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- 카드 1: 등록된 레스토랑 수 -->
         <router-link to="/stores" class="block">
           <div
             class="bg-white rounded-xl p-8 shadow-md text-left transition-transform transform hover:scale-105 hover:shadow-lg">
@@ -88,27 +73,39 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onActivated } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
+// import { Auth } from 'aws-amplify';
 
 export default {
   name: 'HomePage',
   setup() {
+    const router = useRouter();
     const counts = ref({
       stores: 0,
       members: 0,
       bookings: 0
     });
+    const isLoggedIn = ref(false);
+    const loginUrl = ref('');
 
+    const checkLoginStatus = async () => {
+      // localStorage에 토큰이 있는지 직접 확인
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+        isLoggedIn.value = true;
+      } else {
+        isLoggedIn.value = false;
+      }
+    };
+    
     const fetchCounts = async () => {
       try {
-        // 실제 API 엔드포인트에 맞게 수정이 필요합니다.
-        // 현재는 예시 데이터를 사용합니다.
         const response = await axios.get('/api/dashboard/counts');
         counts.value = response.data;
       } catch (error) {
         console.error('대시보드 데이터를 불러오는 중 오류 발생:', error);
-        // 오류 발생 시 임시 데이터 설정
         counts.value = {
           stores: 3,
           members: 150,
@@ -117,12 +114,46 @@ export default {
       }
     };
 
+    const fetchLoginUrl = async () => {
+      try {
+        const response = await axios.get('/api/users/login/url');
+        loginUrl.value = response.data.loginUrl;
+      } catch (err) {
+        console.error('로그인 URL을 불러오는 데 실패했습니다.', err);
+      }
+    };
+
+    const logout = async () => {
+      try {
+        // localStorage의 토큰 삭제
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('idToken');
+        localStorage.removeItem('refreshToken');
+        
+        isLoggedIn.value = false;
+        alert('로그아웃되었습니다.');
+        router.push('/');
+      } catch (error) {
+        console.error('로그아웃 중 오류 발생:', error);
+        alert('로그아웃에 실패했습니다. 다시 시도해주세요.');
+      }
+    };
+
     onMounted(() => {
+      checkLoginStatus();
       fetchCounts();
+      fetchLoginUrl();
+    });
+    
+    onActivated(() => {
+      checkLoginStatus();
     });
 
     return {
       counts,
+      isLoggedIn,
+      loginUrl,
+      logout,
     };
   },
 };

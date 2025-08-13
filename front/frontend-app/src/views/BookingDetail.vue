@@ -7,11 +7,20 @@
         <div><strong>매장 ID:</strong> {{ booking.storeId }}</div>
         <div><strong>예약 날짜:</strong> {{ booking.bookingDate }}</div>
         <div><strong>예약 상태:</strong> {{ booking.bookingState }}</div>
-        <div><strong>좌석 수:</strong> {{ booking.count }}</div> </div>
+        <div><strong>좌석 수:</strong> {{ booking.count }}</div>
+      </div>
       <div v-if="booking.bookingState === 'CONFIRMED'">
         <button @click="cancelBooking" class="cancel-button">예약 취소</button>
       </div>
-      <p v-else>취소할 수 없는 예약입니다.</p>
+      <div v-else-if="booking.bookingState === 'COMPLETED'">
+        <router-link
+          :to="{ name: 'ReviewCreate', params: { storeId: booking.storeId, bookingNum: booking.bookingNum } }"
+          class="review-button"
+        >
+          리뷰 작성
+        </router-link>
+      </div>
+      <p v-else>취소 또는 리뷰 작성할 수 없는 예약입니다.</p>
     </div>
     <div v-else>
       <p>예약 정보를 불러오는 중입니다...</p>
@@ -32,7 +41,10 @@ export default {
   },
   methods: {
     fetchBookingDetail(bookingNum) {
-      this.$axios.get(`/api/bookings/${bookingNum}`)
+      const accessToken = localStorage.getItem('accessToken');
+      const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+
+      this.$axios.get(`/api/bookings/${bookingNum}`, { headers })
         .then(response => {
           this.booking = response.data;
         })
@@ -40,15 +52,35 @@ export default {
           console.error('예약 상세 정보를 가져오는 데 실패했습니다.', error);
         });
     },
-    cancelBooking() {
-      this.$axios.patch(`/api/bookings/${this.booking.bookingNum}`)
-        .then(response => {
-          this.booking = response.data;
-          alert('예약이 취소되었습니다.');
-        })
-        .catch(error => {
-          console.error('예약 취소에 실패했습니다.', error);
-        });
+    async cancelBooking() {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        alert('예약을 취소하려면 로그인이 필요합니다.');
+        return;
+      }
+      const headers = { Authorization: `Bearer ${accessToken}` };
+      
+      try {
+        const cancelBookingResponse = await this.$axios.patch(
+          `/api/bookings/${this.booking.bookingNum}`,
+          null,
+          { headers }
+        );
+        console.log('예약 취소 성공:', cancelBookingResponse.data);
+
+        const decrementSeatResponse = await this.$axios.post(
+          `/api/stores/${this.booking.storeId}/seats/decrement?count=${this.booking.count}`,
+          null,
+          { headers }
+        );
+        console.log('좌석 감소 성공:', decrementSeatResponse.data);
+
+        alert('예약이 성공적으로 취소되었습니다');
+        this.fetchBookingDetail(this.booking.bookingNum);
+      } catch (error) {
+        console.error('예약 취소 작업 실패:', error);
+        alert(`예약 취소에 실패했습니다: ${error.message}`);
+      }
     },
   },
 };
@@ -59,6 +91,7 @@ export default {
   max-width: 600px;
   margin: 0 auto;
 }
+
 .detail-card {
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -66,9 +99,11 @@ export default {
   text-align: left;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 .detail-card div {
   margin-bottom: 10px;
 }
+
 .cancel-button {
   margin-top: 20px;
   padding: 10px 20px;
@@ -78,5 +113,17 @@ export default {
   border-radius: 5px;
   cursor: pointer;
   font-size: 1em;
+}
+
+.review-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 1em;
+  display: inline-block;
 }
 </style>

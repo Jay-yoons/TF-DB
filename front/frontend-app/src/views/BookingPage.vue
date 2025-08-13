@@ -1,121 +1,175 @@
 <template>
-  <div class="flex items-center justify-center min-h-screen bg-gray-100 p-6">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-      <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">예약하기</h1>
+  <div class="container mx-auto p-4 max-w-2xl">
+    <div v-if="loading" class="text-center text-blue-500">
+      예약 처리 중...
+    </div>
+    <div v-else-if="error" class="text-center text-red-500">
+      {{ error }}
+    </div>
+    <div v-else-if="store" class="bg-white shadow-lg rounded-xl p-8">
+      <h1 class="text-3xl font-bold mb-4">{{ store.storeName }} 예약</h1>
+      <p class="text-gray-600 mb-4"><strong>잔여 좌석:</strong> {{ store.availableSeats }}석</p>
 
-      <!-- 로딩 및 에러 메시지 -->
-      <div v-if="loading" class="text-center text-blue-500 mb-4">예약을 진행 중입니다...</div>
-      <div v-if="error" class="text-red-500 text-sm p-4 bg-red-50 rounded-lg mb-4">{{ error }}</div>
+      <div class="mb-4">
+        <label for="reservationDate" class="block text-sm font-medium text-gray-700">예약 날짜</label>
+        <input
+          id="reservationDate"
+          type="date"
+          v-model="reservationDate"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+          :min="today"
+        />
+      </div>
 
-      <form @submit.prevent="makeBooking">
-        <div class="mb-4">
-          <label for="bookingDate" class="block text-gray-700 font-semibold mb-2">예약 날짜</label>
-          <input
-            type="datetime-local"
-            id="bookingDate"
-            v-model="bookingDate"
-            required
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      <div class="mb-4">
+        <label for="reservationTime" class="block text-sm font-medium text-gray-700">예약 시간</label>
+        <input
+          id="reservationTime"
+          type="time"
+          v-model="reservationTime"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+        />
+      </div>
 
-        <div class="mb-4">
-          <label for="count" class="block text-gray-700 font-semibold mb-2">예약 인원</label>
-          <input
-            type="number"
-            id="count"
-            v-model.number="count"
-            required
-            min="1"
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      <div class="mb-4">
+        <label for="seatCount" class="block text-sm font-medium text-gray-700">예약 좌석 수</label>
+        <input
+          id="seatCount"
+          type="number"
+          v-model.number="count"
+          min="1"
+          :max="store.availableSeats"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+        />
+      </div>
 
-        <div class="text-gray-500 text-sm mb-6">
-          <p>가게 ID: {{ storeId }}</p>
-          <p>사용자 ID: {{ userId }}</p>
-        </div>
-
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 disabled:bg-blue-300 disabled:cursor-not-allowed"
-        >
-          예약 완료
-        </button>
-      </form>
+      <button
+        @click="createBooking"
+        class="w-full text-center bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300"
+        :disabled="!reservationDate || !reservationTime || count < 1 || count > store.availableSeats"
+      >
+        예약 확정
+      </button>
+    </div>
+    <div v-else class="text-center text-gray-500">
+      가게 정보를 찾을 수 없습니다.
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+<script>
+import { ref, onMounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
+import { getCurrentUserId } from '@/utils/auth';
 
-const router = useRouter();
-const route = useRoute();
+export default {
+  name: 'BookingPage',
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const store = ref(null);
+    const storeId = ref(route.params.storeId);
+    const count = ref(1);
+    const loading = ref(true);
+    const error = ref(null);
+    const reservationDate = ref('');
+    const reservationTime = ref('');
 
-const bookingDate = ref('');
-const count = ref(1);
-const loading = ref(false);
-const error = ref(null);
+    const today = computed(() => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    });
 
-const storeId = ref(route.params.storeId);
-const userId = ref('user02');
-
-const makeBooking = async () => {
-  if (loading.value) return;
-
-  // 클라이언트 측에서 유효성 검사 추가
-  if (!bookingDate.value || !count.value || isNaN(count.value) || count.value < 1) {
-    error.value = "예약 날짜와 유효한 예약 인원을 입력해주세요.";
-    return;
-  }
-
-  loading.value = true;
-  error.value = null;
-
-  try {
-    const bookingRequest = {
-      bookingDate: bookingDate.value,
-      userId: userId.value,
-      storeId: storeId.value,
-      count: count.value,
+    const fetchStoreDetail = async () => {
+      try {
+        const response = await axios.get(`/api/stores/${storeId.value}`);
+        store.value = response.data;
+      } catch (e) {
+        error.value = `가게 정보를 불러오는 데 실패했습니다: ${e.message}`;
+      } finally {
+        loading.value = false;
+      }
     };
 
-    console.log('예약 요청 데이터:', bookingRequest);
+    const createBooking = async () => {
+      loading.value = true;
+      error.value = null;
 
-    // 1. 예약 생성 API 호출
-    const bookingResponse = await axios.post('/api/bookings/new', bookingRequest);
-    console.log('예약 성공:', bookingResponse.data);
+      try {
+        const userId = getCurrentUserId();
+        const accessToken = localStorage.getItem('accessToken');
 
-    // 2. 예약 성공 후 좌석 증가 API 호출
-    // URL에 storeId와 count를 동적으로 포함시킵니다.
-    const incrementSeatResponse = await axios.post(`/api/stores/${storeId.value}/seats/increment?count=${count.value}`);
-    console.log('좌석 증가 성공:', incrementSeatResponse.data);
+        if (!userId || !accessToken) {
+          alert('예약을 위해 로그인이 필요합니다.');
+          loading.value = false;
+          return;
+        }
 
-    const bookingNum = bookingResponse.data.bookingNum;
+        if (!reservationDate.value || !reservationTime.value) {
+          alert('예약 날짜와 시간을 모두 선택해주세요.');
+          loading.value = false;
+          return;
+        }
 
-    if (bookingNum) {
-      router.push({ name: 'BookingDetail', params: { bookingNum } });
-    } else {
-      throw new Error('API 응답에 예약 번호가 없습니다.');
-    }
-  } catch (e) {
-    console.error('예약 또는 좌석 증가 실패:', e);
-    // 두 API 호출 중 어느 하나라도 실패하면 사용자에게 오류 메시지를 표시합니다.
-    error.value = `작업 실패: ${e.response?.data?.message || e.message}`;
-  } finally {
-    loading.value = false;
-  }
+        const headers = {
+          Authorization: `Bearer ${accessToken}`,
+        };
+
+        const bookingDate = `${reservationDate.value}T${reservationTime.value}`;
+        
+        console.log('전송될 예약 날짜/시간:', bookingDate);
+        console.log('전송될 Authorization 헤더:', headers.Authorization);
+
+        const bookingRequest = {
+          storeId: storeId.value,
+          userId: userId,
+          count: count.value,
+          bookingDate: bookingDate,
+          state: 'CONFIRMED',
+        };
+
+        // 1. 예약 생성 API 호출
+        const bookingResponse = await axios.post('/api/bookings/new', bookingRequest, { headers });
+        console.log('예약 성공:', bookingResponse.data);
+
+        // 2. 예약 성공 후 좌석 증가 API 호출
+        const incrementSeatResponse = await axios.post(`/api/stores/${storeId.value}/seats/increment?count=${count.value}`, null, { headers });
+        console.log('좌석 증가 성공:', incrementSeatResponse.data);
+
+        const bookingNum = bookingResponse.data.bookingNum;
+
+        if (bookingNum) {
+          router.push({ name: 'BookingDetail', params: { bookingNum } });
+        } else {
+          throw new Error('API 응답에 예약 번호가 없습니다.');
+        }
+      } catch (e) {
+        console.error('예약 또는 좌석 증가 실패:', e);
+        error.value = `작업 실패: ${e.response?.data?.message || e.message}`;
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    onMounted(() => {
+      fetchStoreDetail();
+    });
+
+    return {
+      store,
+      storeId,
+      count,
+      loading,
+      error,
+      reservationDate,
+      reservationTime,
+      today,
+      createBooking,
+    };
+  },
 };
-
-onMounted(() => {
-  // 초기화 로직
-});
 </script>
-
-<style scoped>
-/* Tailwind CSS */
-</style>

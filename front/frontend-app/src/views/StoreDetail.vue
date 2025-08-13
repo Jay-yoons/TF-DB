@@ -19,6 +19,14 @@
       >
         예약하기
       </router-link>
+
+      <router-link
+        :to="{ name: 'ReviewList', params: { storeId: store.storeId } }"
+        class="inline-block w-full text-center bg-gray-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-700 transition duration-300"
+      >
+        리뷰 보기
+      </router-link>
+
     </div>
     <div v-else class="text-center text-gray-500">
       가게 정보를 찾을 수 없습니다.

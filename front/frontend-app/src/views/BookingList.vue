@@ -18,36 +18,57 @@
         </div>
       </li>
     </ul>
+    <p v-else-if="loading">예약 목록을 불러오는 중입니다...</p>
+    <p v-else-if="error">{{ error }}</p>
     <p v-else>예약 목록이 없습니다.</p>
   </div>
 </template>
 
 <script>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { getCurrentUserId } from '@/utils/auth';
+
 export default {
   name: 'BookingList',
-  data() {
-    return {
-      bookings: [],
-      userId: 'user02',
+  setup() {
+    const bookings = ref([]);
+    const loading = ref(true);
+    const error = ref(null);
+
+    const fetchBookings = async () => {
+      try {
+        const userId = getCurrentUserId();
+        const accessToken = localStorage.getItem('accessToken');
+        
+        if (!userId || !accessToken) {
+          error.value = '로그인이 필요합니다.';
+          loading.value = false;
+          return;
+        }
+
+        const response = await axios.get(`/api/bookings/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        bookings.value = response.data;
+      } catch (e) {
+        error.value = `예약 목록을 불러오는 데 실패했습니다: ${e.message}`;
+      } finally {
+        loading.value = false;
+      }
     };
-  },
-  mounted() {
-    this.fetchBookings();
-  },
-  methods: {
-    fetchBookings() {
-      this.$axios.get(`/api/bookings`, {
-        params: {
-          userId: this.userId,
-        },
-      })
-      .then(response => {
-        this.bookings = response.data;
-      })
-      .catch(error => {
-        console.error('예약 목록을 가져오는 데 실패했습니다.', error);
-      });
-    },
+
+    onMounted(() => {
+      fetchBookings();
+    });
+
+    return {
+      bookings,
+      loading,
+      error,
+    };
   },
 };
 </script>
