@@ -22,6 +22,14 @@
           "value": "prod"
         },
         {
+          "name": "TZ",
+          "value": "Asia/Seoul"
+        },
+        {
+          "name": "JAVA_OPTS",
+          "value": "-Duser.timezone=Asia/Seoul -Dfile.encoding=UTF-8"
+        },
+        {
           "name": "DB_HOST",
           "value": "your-rds-endpoint.ap-northeast-2.rds.amazonaws.com"
         },

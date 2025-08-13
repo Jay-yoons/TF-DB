@@ -22,6 +22,14 @@
           "value": "prod"
         },
         {
+          "name": "TZ",
+          "value": "Asia/Seoul"
+        },
+        {
+          "name": "JAVA_OPTS",
+          "value": "-Duser.timezone=Asia/Seoul -Dfile.encoding=UTF-8"
+        },
+        {
           "name": "ORACLE_HOST",
           "value": "primarydb.internal"
         },

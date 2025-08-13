@@ -37,8 +37,14 @@ RUN ./gradlew build -x test --no-daemon --stacktrace || \
 # Runtime stage
 FROM openjdk:17-jdk-slim
 
-# Install curl for health check
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Set timezone to Asia/Seoul
+ENV TZ=Asia/Seoul
+ENV JAVA_OPTS="-Duser.timezone=Asia/Seoul -Dfile.encoding=UTF-8"
+
+# Install curl for health check and timezone data
+RUN apt-get update && apt-get install -y curl tzdata && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -57,5 +63,5 @@ EXPOSE 8082
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:8082/actuator/health || exit 1
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application with timezone settings
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
