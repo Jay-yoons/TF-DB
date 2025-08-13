@@ -6,7 +6,7 @@ Team-FOG 프로젝트의 **User Service**는 사용자 인증, 회원가입, 마
 
 - **담당자**: User Service 담당자
 - **포트**: 8082
-- **기술 스택**: Spring Boot 3.4.0, Java 21, Oracle DB (PDB + Standby), AWS Cognito
+- **기술 스택**: Spring Boot 3.5.4, Java 17, Oracle DB (PDB + Standby), AWS Cognito
 - **인증 방식**: AWS Cognito JWT 토큰 기반
 
 ## 🚀 빠른 시작
@@ -214,7 +214,7 @@ curl -X POST http://localhost:8082/api/users/dummy/data
 
 ### 필수 요구사항
 
-- Java 21
+- Java 17
 - Gradle 8.x
 - H2 Database (개발용)
 - Oracle Database (프로덕션용)
@@ -333,10 +333,18 @@ Password: (비어있음)
 - **이메일**: user-service@team-fog.com
 - **슬랙**: #user-service
 
-## 📚 추가 문서
+## 📚 문서
 
-- [전체 DB 스키마](docs/COMPLETE_DB_SCHEMA.md) - 전체 데이터베이스 스키마 정의
-- [실제 배포환경 설정 가이드](docs/PRODUCTION_DEPLOYMENT_GUIDE.md) - 실제 AWS MSA 환경 배포 방법
-- [배포 가이드](docs/DEPLOYMENT_GUIDE.md) - AWS ECS 배포 방법
-- [API 문서](docs/API_DOCUMENTATION.md) - 상세 API 명세
-- [MSA 연동 가이드](docs/MSA_INTEGRATION.md) - 다른 서비스와의 연동 방법
+### 📖 **전체 문서 목록**
+- **[📚 문서 목록](docs/README.md)** - 모든 문서의 인덱스 및 가이드
+
+### 🚀 **주요 가이드**
+- **[AWS MSA 설정 가이드](docs/AWS_MSA_SETUP_GUIDE.md)** - AWS MSA 환경 구축
+- **[전체 DB 스키마](docs/COMPLETE_DB_SCHEMA.md)** - 데이터베이스 스키마 정의
+- **[API 문서](docs/API_DOCUMENTATION.md)** - 상세 API 명세
+- **[MSA 연동 가이드](docs/MSA_INTEGRATION.md)** - 서비스 간 연동 방법
+
+### 🔧 **배포 관련**
+- **[배포 가이드](docs/DEPLOYMENT_GUIDE.md)** - AWS ECS 배포 방법
+- **[프로덕션 배포 가이드](docs/PRODUCTION_DEPLOYMENT_GUIDE.md)** - 프로덕션 환경 설정
+- **[인프라 설정](docs/infrastructure-setup.md)** - AWS 인프라 설정
