@@ -1,0 +1,29 @@
+(1) MV_USERS_FAV_STORES 5분 갱신
+BEGIN
+  DBMS_SCHEDULER.CREATE_JOB (
+    job_name        => 'JOB_REFRESH_MV_USERS_FAV_STORES',  --스케줄러 작업의 고유 이름
+    job_type        => 'PLSQL_BLOCK',  --'PLSQL_BLOCK'는 PL/SQL 문장을 실행. 'EXECUTABLE'이면 OS 프로그램 실행 가능.
+    job_action      => 'BEGIN DBMS_MVIEW.REFRESH(''MV_USERS_FAV_STORES'', ''FAST''); END;', --실제 실행 내용. PL/SQL 블록이면 BEGIN ... END; 형식
+    start_date      => SYSTIMESTAMP, --처음 작업을 시작할 날짜/시간. SYSTIMESTAMP를 쓰면 바로 시작 가능.
+    repeat_interval => 'FREQ=MINUTELY; INTERVAL=5', --5분 마다 실행
+    enabled         => TRUE,  --TRUE이면 작업 생성과 동시에 활성화. 
+    comments        => 'Refresh MV_USERS_FAV_STORES every 5 minutes'
+  );
+END;
+/
+
+
+
+(2) MV_USERS_REVIEW 5분 갱신
+BEGIN
+  DBMS_SCHEDULER.CREATE_JOB (
+    job_name        => 'JOB_REFRESH_MV_USERS_REVIEW',
+    job_type        => 'PLSQL_BLOCK',
+    job_action      => 'BEGIN DBMS_MVIEW.REFRESH(''MV_USERS_REVIEW'', ''FAST''); END;',
+    start_date      => SYSTIMESTAMP,
+    repeat_interval => 'FREQ=MINUTELY; INTERVAL=5',
+    enabled         => TRUE,
+    comments        => 'Refresh MV_USERS_REVIEW every 5 minutes'
+  );
+END;
+/
