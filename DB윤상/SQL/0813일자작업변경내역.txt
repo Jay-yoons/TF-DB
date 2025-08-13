@@ -1,0 +1,107 @@
+작업 간의 변경건
+PDB_USER 간의 변경건
+**변경전**
+CREATE MATERIALIZED VIEW MV_USERS_FAV_STORES
+BUILD IMMEDIATE
+REFRESH FAST ON COMMIT
+AS
+SELECT * FROM FAV_STORE@PDB_STORES_LINK;
+->
+**변경후**
+CREATE MATERIALIZED VIEW MV_USERS_REVIEW
+REFRESH FAST ON DEMAND
+AS
+SELECT REVIEW_ID, STORE_ID, USER_ID, "COMENT", SCORE
+FROM REVIEW@PDB_STORES_LINK;
+PDB 간의 ON COMMIT 제한적인 점이 확인 따라서 명시(명령을 받고) 진행 하는 방식으로 변경
+
+변경건의 문제: 이전 계획에서는 COMMIT이 발생하면 업데이트를 하는 경우로 문제를 해결하려고 하였으나, 실시간으로 해결하지 못함
+따라서 DBMS_SCHDUELER를 활용하여 5분 간 갱신하는 것을 목표로 삼음
+
+ERD 변경 점
+STORE_LOCATION 추가 건
+**변경전**
+CREATE TABLE STORES
+    ( 
+     STORE_ID       VARCHAR2 (20 CHAR)  NOT NULL , 
+     STORE_NAME     VARCHAR2 (50 CHAR)  NOT NULL , 
+     CATEGORY_CODE  INTEGER  NOT NULL , 
+     SEAT_NUM       INTEGER  NOT NULL , 
+     SERVICE_TIME   VARCHAR2 (50 CHAR) ,
+     IMAGE_URL      VARCHAR2 (50 CHAR) 
+    )
+;
+->
+**변경후**
+CREATE TABLE STORES
+    ( 
+     STORE_ID       VARCHAR2 (20 CHAR)  NOT NULL , 
+     STORE_NAME     VARCHAR2 (50 CHAR)  NOT NULL , 
+     CATEGORY_CODE  INTEGER  NOT NULL , 
+     STORE_LOCATION VARCHAR2 (50 CHAR)  NOT NULL , 
+     SEAT_NUM       INTEGER  NOT NULL , 
+     SERVICE_TIME   VARCHAR2 (50 CHAR) ,
+     IMAGE_URL      VARCHAR2 (50 CHAR) 
+    )
+;
+
+CREATE TABLE STORES_LOCATION
+   (
+     STORE_ID       VARCHAR2 (20 CHAR)  NOT NULL , 
+     STORE_LOCATION VARCHAR2 (50 CHAR)  NOT NULL , 
+     LONGITUDE      VARCHAR2 (50 CHAR)  NOT NULL ,
+     LATITUDE       VARCHAR2 (50 CHAR)  NOT NULL
+    )
+;
+변경 사유 경도 위도 사용시에 STORE_LOCATION에 종속 되는 문제 정규화 오류 발생 따라서
+STORES_LOCATION 테이블을 따로 두어 변경을 진행 하였음
+
+개선점: 맵 API 개발자님은 STORES의 모든 테이블을 사용을 할 필요가 없음 따라서 중복이 배제 되며, 조회도 빠를 것으로 생각
+
+트리거 변경건
+**변경전**
+CREATE OR REPLACE TRIGGER TRG_STORES_DELETE
+AFTER DELETE ON STORES
+FOR EACH ROW
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION;
+BEGIN
+    BEGIN
+        DELETE FROM BOOKING_ADMIN.BOOKING@PDB_BOOKING_LINK
+        WHERE STORE_ID = :OLD.STORE_ID;
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            INSERT INTO delete_fail_log(STORE_ID, fail_msg, fail_time)
+            VALUES (:OLD.STORE_ID, SQLERRM, SYSTIMESTAMP);
+            COMMIT;
+    END;
+END;
+/
+->
+**변경후**
+CREATE OR REPLACE TRIGGER TRG_STORES_DELETE
+AFTER DELETE ON STORES
+FOR EACH ROW
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION;
+    v_err_msg VARCHAR2(4000);
+BEGIN
+    BEGIN
+        DELETE FROM BOOKING_ADMIN.BOOKING@PDB_BOOKING_LINK
+        WHERE STORE_ID = :OLD.STORE_ID;
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            v_err_msg := SQLERRM;
+            INSERT INTO delete_fail_log(STORE_ID, fail_msg, fail_time)
+            VALUES (:OLD.STORE_ID, v_err_msg, SYSTIMESTAMP);
+            COMMIT;
+    END;
+END;
+/
+
+변경 사유 SQLERRM는 SQL의 에러건이 발생 되는 구문건 이는 함수이므로 함수 자체를 컬럼값에 못넣는 상황 발생
+따라서 트리거에 변수 선언 이후에 함수내용을 변수에 정의 후 변수를 컬럼 값에 넣는 작업
+
+오류로 인한 변경 점이기에 개선 사항이 없습니다.
