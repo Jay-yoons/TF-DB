@@ -162,10 +162,10 @@ ALTER TABLE FAV_STORE
     ADD CONSTRAINT FAV_STORE_PK PRIMARY KEY ( FAV_STORE_ID ) ;
 
 ALTER TABLE REVIEW 
-    ADD CONSTRAINT FAV_STORE__UN UNIQUE ( STORE_ID , USER_ID ) ;
+    ADD CONSTRAINT REVIEW_STORE_USER_UN UNIQUE ( STORE_ID , USER_ID ) ;
 
 ALTER TABLE FAV_STORE 
-    ADD CONSTRAINT FAV_STORE__UN UNIQUE ( STORE_ID , USER_ID ) ;
+    ADD CONSTRAINT FAV_STORE_UN UNIQUE ( STORE_ID , USER_ID ) ;
 
 ALTER TABLE REVIEW 
     ADD CONSTRAINT REVIEW_PK PRIMARY KEY ( REVIEW_ID ) ;
@@ -223,15 +223,14 @@ ALTER TABLE FAV_STORE
     ( 
      STORE_ID
     ) 
-    REFERENCES LOCAL_STORES 
+    REFERENCES STORES 
     ( 
      STORE_ID
     ) 
     ON DELETE CASCADE 
-;
 --------------------------------------CREATE DB LINK PDB_STORE_LINK-------------------------------
 CREATE DATABASE LINK PDB_STORES_LINK
-CONNECT TO STORE_ADMIN IDENTIFIED BY "oracle"
+CONNECT TO STORE_ADMIN IDENTIFIED BY oracle
 USING 'PDB_STORE';
 
 exit;
@@ -266,7 +265,7 @@ ALTER TABLE USERS
 
 ---------------------CREATE DB LINK PDB_USER_LINK------------------------------------------
 CREATE DATABASE LINK PDB_USERS_LINK
-CONNECT TO USER_ADMIN IDENTIFIED BY "oracle"
+CONNECT TO USER_ADMIN IDENTIFIED BY oracle
 USING 'PDB_USER';
 
 exit;
@@ -309,9 +308,7 @@ USING 'PDB_BOOKING';
 exit;
 =========================================CREATE trigger=========================================
 
-----------------------------------------STORE 트리거---------------------------------------------
-ALTER SESSION SET CONTAINER = PDB_STORE;
-
+-------------------------STORE 트리거--------------------------------
 CREATE OR REPLACE TRIGGER TRG_STORES_DELETE
 AFTER DELETE ON STORES
 FOR EACH ROW
@@ -324,16 +321,14 @@ BEGIN
         COMMIT;
     EXCEPTION
         WHEN OTHERS THEN
-            INSERT INTO delete_fail_log(user_id, fail_msg, fail_time)
-            VALUES (:OLD.user_id, SQLERRM, SYSTIMESTAMP);
+            INSERT INTO delete_fail_log(STORE_ID, fail_msg, fail_time)
+            VALUES (:OLD.STORE_ID, SQLERRM, SYSTIMESTAMP);
             COMMIT;
     END;
 END;
 /
 
------------------------------------------USER 트리거----------------------------------
-ALTER SESSION SET CONTAINER = PDB_USERS;
-
+-------------------------USER 트리거----------------------------------
 CREATE OR REPLACE TRIGGER TRG_USERS_DELETE
 AFTER DELETE ON USERS
 FOR EACH ROW
@@ -342,34 +337,35 @@ DECLARE
 BEGIN
     BEGIN
         DELETE FROM FAV_STORE@PDB_STORES_LINK
-        WHERE user_id = :OLD.user_id;
+        WHERE USER_ID = :OLD.USER_ID;
         COMMIT;
     EXCEPTION
         WHEN OTHERS THEN
             INSERT INTO delete_fail_log(user_id, fail_msg, fail_time)
-            VALUES (:OLD.user_id, 'FAV_STORE delete failed: ' || SQLERRM, SYSTIMESTAMP);
+            VALUES (:OLD.USER_ID, 'FAV_STORE delete failed: ' || SQLERRM, SYSTIMESTAMP);
             COMMIT;
     END;
     BEGIN
         DELETE FROM BOOKING@PDB_BOOKING_LINK
-        WHERE STORE_ID = :OLD.STORE_ID;
+        WHERE USER_ID = :OLD.USER_ID;
         COMMIT;
     EXCEPTION
         WHEN OTHERS THEN
             INSERT INTO delete_fail_log(user_id, fail_msg, fail_time)
-            VALUES (:OLD.user_id, 'BOOKING delete failed: ' || SQLERRM, SYSTIMESTAMP);
+            VALUES (:OLD.USER_ID, 'BOOKING delete failed: ' || SQLERRM, SYSTIMESTAMP);
             COMMIT;
     END;
     BEGIN
         DELETE FROM REVIEW@PDB_STORES_LINK
-        WHERE STORE_ID = :OLD.STORE_ID;
+        WHERE USER_ID = :OLD.USER_ID;
         COMMIT;
     EXCEPTION
         WHEN OTHERS THEN
             INSERT INTO delete_fail_log(user_id, fail_msg, fail_time)
-            VALUES (:OLD.user_id, 'REVIEW delete failed: ' || SQLERRM, SYSTIMESTAMP);
+            VALUES (:OLD.USER_ID, 'REVIEW delete failed: ' || SQLERRM, SYSTIMESTAMP);
             COMMIT;
     END;
 END;
 /
+
 
