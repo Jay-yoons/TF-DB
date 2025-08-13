@@ -8,6 +8,8 @@ import com.example.store.service.repository.StoreRepository;
 import com.example.store.service.repository.StoreSeatRepository;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 스토어 도메인의 비즈니스 로직을 담당하는 서비스.
@@ -29,6 +31,16 @@ public class StoreService {
      */
     public List<Store> getAllStores() {
         return repository.findAll();
+    }
+
+    /**
+     * 카테고리 코드로 가게 목록을 조회한다.
+     */
+    public List<Store> getStoresByCategoryCode(Integer categoryCode) {
+        if (categoryCode == null) {
+            return getAllStores();
+        }
+        return repository.findByCategoryCode(categoryCode);
     }
 
     /**
@@ -65,6 +77,22 @@ public class StoreService {
         Store store = getStore(storeId);
         StoreSeat storeSeat = getStoreSeatInfo(storeId);
         return store.getSeatNum() - storeSeat.getInUsingSeat();
+    }
+
+    /**
+     * 카테고리 코드 → 한글 카테고리명 매핑.
+     */
+    public String toKoreanCategoryName(Integer categoryCode) {
+        com.example.store.service.entity.Category category = com.example.store.service.entity.Category.fromCode(categoryCode);
+        return category != null ? category.getKoreanName() : "기타";
+    }
+
+    /**
+     * 가게들을 카테고리명(한글) 기준으로 그룹핑한다.
+     */
+    public Map<String, List<Store>> groupStoresByKoreanCategoryName() {
+        return getAllStores().stream()
+                .collect(Collectors.groupingBy(s -> toKoreanCategoryName(s.getCategoryCode())));
     }
 
     // Booking Service에서 호출할 메서드

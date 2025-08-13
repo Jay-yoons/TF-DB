@@ -34,7 +34,7 @@ public class Review {
     @Column(name = "USER_ID", length = 15, nullable = false)
     private String userId;
 
-    @Column(name = "COMMENT", length = 50)
+    @Column(name = "COMENT", length = 50)
     private String comment;
 
     @Column(name = "SCORE")

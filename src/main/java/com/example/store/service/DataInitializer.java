@@ -3,15 +3,17 @@ package com.example.store.service;
 import com.example.store.service.entity.Store;
 import com.example.store.service.entity.StoreSeat;
 import org.springframework.boot.CommandLineRunner;
-// import org.springframework.context.annotation.Profile;
-// import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 import com.example.store.service.repository.StoreRepository;
 import com.example.store.service.repository.StoreSeatRepository;
 
 /**
  * 개발 편의를 위한 초기 데이터 주입 컴포넌트.
- * 현재 비활성화 상태입니다. 필요 시 @Profile("dev"), @Component 추가로 활성화하세요.
+ * dev 프로필에서만 동작합니다.
  */
+@Component
+@Profile("dev")
 public class DataInitializer implements CommandLineRunner {
 
     private final StoreRepository storeRepository;
@@ -30,6 +32,8 @@ public class DataInitializer implements CommandLineRunner {
                 .storeName("스타벅스 강남점")
                 .categoryCode(1)
                 .storeLocation("서울 강남구")
+                .longitude("127.0276368")
+                .latitude("37.4979502")
                 .seatNum(50)
                 .serviceTime("07:00~22:00")
                 .build();
@@ -39,6 +43,8 @@ public class DataInitializer implements CommandLineRunner {
                 .storeName("맥도날드 강남점")
                 .categoryCode(2)
                 .storeLocation("서울 강남구")
+                .longitude("127.0256510")
+                .latitude("37.4998000")
                 .seatNum(30)
                 .serviceTime("06:00~24:00")
                 .build();
@@ -48,6 +54,8 @@ public class DataInitializer implements CommandLineRunner {
                 .storeName("올리브영 강남점")
                 .categoryCode(3)
                 .storeLocation("서울 강남구")
+                .longitude("127.0280000")
+                .latitude("37.4985000")
                 .seatNum(0)
                 .serviceTime("10:00~22:00")
                 .build();

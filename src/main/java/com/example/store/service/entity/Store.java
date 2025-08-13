@@ -34,4 +34,10 @@ public class Store {
     
     @Column(name = "SERVICE_TIME", length = 50)
     private String serviceTime; // DB: VARCHAR2(50)
+
+    @Column(name = "LONGITUDE", length = 50)
+    private String longitude; // 경도
+
+    @Column(name = "LATITUDE", length = 50)
+    private String latitude; // 위도
 }

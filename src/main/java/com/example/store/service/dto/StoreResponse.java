@@ -25,16 +25,21 @@ public class StoreResponse {
     private String storeId;
     private String storeName;
     private Integer categoryCode;
+    private String categoryName;
     private String storeLocation;
     private int seatNum;
     private String serviceTime;
     private Integer availableSeats; // 선택 응답 필드
+    private String imageUrl; // S3 공개 URL 또는 프록시 URL
+    private java.util.List<String> imageUrls; // 다중 이미지 지원
 
     public static StoreResponse fromEntity(com.example.store.service.entity.Store store) {
+        com.example.store.service.entity.Category category = com.example.store.service.entity.Category.fromCode(store.getCategoryCode());
         return StoreResponse.builder()
                 .storeId(store.getStoreId())
                 .storeName(store.getStoreName())
                 .categoryCode(store.getCategoryCode())
+                .categoryName(category != null ? category.getKoreanName() : null)
                 .storeLocation(store.getStoreLocation())
                 .seatNum(store.getSeatNum())
                 .serviceTime(store.getServiceTime())

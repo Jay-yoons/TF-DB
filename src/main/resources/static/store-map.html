@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>가게 상세</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #0f172a;
+      --panel-2: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --brand: #6366f1;
+      --border: #1f2937;
+      --chip-bg: #1d4ed8;
+      --chip-text: #dbeafe;
+      --shadow: 0 10px 25px rgba(0,0,0,.35);
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: linear-gradient(180deg, #0b1020 0%, #0a0f1e 100%); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+    a { color: inherit; text-decoration: none; }
+    header {
+      padding: 18px 20px; border-bottom: 1px solid var(--border);
+      background: radial-gradient(1200px 400px at 50% -200px, rgba(99,102,241,.35), transparent 60%), transparent;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+    .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 20px rgba(99,102,241,.8); }
+    .container { max-width: 1100px; margin: 0 auto; padding: 18px 20px 32px; }
+    .layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .card { background: linear-gradient(180deg, #0f172a, #0d1528); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .card-body { padding: 16px; }
+    .card-title { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
+    .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px; border-radius: 999px; background: linear-gradient(180deg, #1e3a8a, #1d4ed8); color: var(--chip-text); border: 1px solid #1f40af; }
+    .row { margin: 8px 0; }
+    .muted { color: var(--muted); }
+    .thumb { margin-top: 12px; width: 100%; max-width: 360px; height: 220px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .gallery { margin-top: 12px; display: grid; grid-auto-flow: column; grid-auto-columns: 220px; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+    .gallery img { width: 220px; height: 150px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow); background: #0a0f1e; }
+    .map-card { position: relative; }
+    #map { width: 100%; height: 520px; display: block; }
+    #map, .map-card { border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+    .spinner { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(5,8,15,.35); backdrop-filter: blur(2px); }
+    .spinner .ring { width: 44px; height: 44px; border: 4px solid rgba(255,255,255,.25); border-top-color: var(--brand); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .controls { margin: 12px 0 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input[type="text"] { padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-2); color: var(--text); }
+    button { padding: 8px 12px; border: 1px solid #4657f3; background: linear-gradient(180deg, #4f46e5, #4338ca); color: white; border-radius: 10px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .error { color: #fecaca; background: rgba(239,68,68,.15); padding: 10px 12px; border-radius: 10px; border: 1px solid #7f1d1d; }
+  </style>
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const defaultStoreId = 'A001';
+    const storeId = qs.get('storeId') || defaultStoreId;
+
+    let storeData = null;
+    let mapsKey = '';
+
+    async function fetchMapsKey() {
+      try {
+        const res = await fetch('/api/config/maps-key');
+        const json = await res.json();
+        return json.googleMapsApiKey || '';
+      } catch (e) {
+        console.error('Failed to load maps key', e);
+        return '';
+      }
+    }
+
+    async function fetchStore(id) {
+      const res = await fetch(`/api/stores/${encodeURIComponent(id)}`);
+      if (!res.ok) throw new Error('Store not found');
+      return await res.json();
+    }
+
+    async function fetchLocation(id) {
+      const res = await fetch(`/api/stores/${encodeURIComponent(id)}/location`);
+      if (!res.ok) throw new Error('Location not found');
+      return await res.json();
+    }
+
+    function loadGoogleMapsScript(key) {
+      return new Promise((resolve, reject) => {
+        const src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&callback=initMap`;
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.defer = true;
+        script.onerror = reject;
+        window.initMap = () => resolve();
+        document.head.appendChild(script);
+      });
+    }
+
+    function numberOrNull(v) {
+      if (v === null || v === undefined || v === '') return null;
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    async function bootstrap() {
+      document.getElementById('storeId').value = storeId;
+      // 목록에서 storeId를 쿼리로 넘겨왔다면 입력/버튼 영역 숨김
+      if (new URLSearchParams(location.search).has('storeId')) {
+        const controls = document.querySelector('.controls');
+        if (controls) controls.style.display = 'none';
+      }
+      try {
+        const [key, store, loc] = await Promise.all([fetchMapsKey(), fetchStore(storeId), fetchLocation(storeId)]);
+        mapsKey = key;
+        storeData = store;
+        renderInfo(store);
+
+        if (!mapsKey) {
+          document.getElementById('warning').innerHTML = '<div class="error">Google Maps API Key가 설정되지 않았습니다. application.properties의 google.maps.api.key 값을 설정하세요.</div>';
+          return;
+        }
+
+        await loadGoogleMapsScript(mapsKey);
+
+        const lng = numberOrNull(loc.longitude);
+        const lat = numberOrNull(loc.latitude);
+        if (lng === null || lat === null) {
+          document.getElementById('warning').innerHTML = '<div class="error">가게의 위경도 정보가 없습니다.</div>';
+          return;
+        }
+
+        const center = { lat, lng };
+        const map = new google.maps.Map(document.getElementById('map'), {
+          center,
+          zoom: 16,
+          mapId: 'DEMO_MAP_ID'
+        });
+
+        new google.maps.Marker({ position: center, map, title: store.storeName });
+        const sp = document.getElementById('spinner');
+        if (sp) sp.style.display = 'none';
+      } catch (e) {
+        console.error(e);
+        document.getElementById('warning').innerHTML = `<div class="error">로드 중 오류: ${e.message}</div>`;
+      }
+    }
+
+    function renderInfo(store) {
+      const info = document.getElementById('info');
+      const gallery = (store.imageUrls && store.imageUrls.length)
+        ? `<div class="gallery">${store.imageUrls.map(u => `<img src="${u}" alt="이미지" loading="lazy" />`).join('')}</div>`
+        : (store.imageUrl ? `<img class="thumb" src="${store.imageUrl}" alt="${store.storeName}" />` : '');
+
+      info.innerHTML = `
+        <div class="row"><span class="badge">Store</span> <strong>${store.storeName}</strong></div>
+        <div class="row">카테고리: ${store.categoryName || store.categoryCode || '-'} <span class="muted">(code: ${store.categoryCode ?? '-'})</span></div>
+        <div class="row">주소: ${store.storeLocation || '-'}</div>
+        <div class="row">좌석: 전체 ${store.seatNum ?? '-'} / 여유 ${store.availableSeats ?? '-'}</div>
+        <div class="row">위치: 지도에서 확인</div>
+        ${gallery}
+      `;
+    }
+
+    async function handleLoad() {
+      const id = document.getElementById('storeId').value.trim();
+      if (!id) return;
+      location.href = `${location.pathname}?storeId=${encodeURIComponent(id)}`;
+    }
+
+    window.addEventListener('DOMContentLoaded', bootstrap);
+  </script>
+</head>
+<body>
+  <header>
+    <div class="container brand">
+      <span class="dot"></span>
+      <span>가게 상세</span>
+    </div>
+  </header>
+  <main class="container">
+    <div class="controls">
+      <label for="storeId" class="muted">Store ID</label>
+      <input id="storeId" type="text" placeholder="A001" />
+      <button onclick="handleLoad()">불러오기</button>
+      <span class="muted">예: /store-map.html?storeId=A001</span>
+    </div>
+
+    <div id="warning"></div>
+
+    <div class="layout">
+      <div class="card map-card" id="mapWrap">
+        <div id="map"></div>
+        <div id="spinner" class="spinner"><div class="ring"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div id="info" class="info"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
+
+

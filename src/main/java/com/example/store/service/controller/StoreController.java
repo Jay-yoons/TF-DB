@@ -4,9 +4,11 @@ import com.example.store.service.entity.StoreSeat;
 import org.springframework.web.bind.annotation.*;
 import com.example.store.service.entity.Store;
 import com.example.store.service.service.StoreService;
+import com.example.store.service.service.StoreImageService;
 import com.example.store.service.dto.StoreResponse;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 스토어 관련 REST API 엔드포인트 집합.
@@ -18,16 +20,22 @@ import java.util.List;
 public class StoreController {
 
     private final StoreService service;
+    private final StoreImageService imageService;
 
-    public StoreController(StoreService service) {
+    public StoreController(StoreService service, StoreImageService imageService) {
         this.service = service;
+        this.imageService = imageService;
     }
 
-    /** 가게 목록 API */
+    /** 가게 목록 API (옵션: categoryCode로 필터링) */
     @GetMapping
-    public List<StoreResponse> listStores() {
-        return service.getAllStores().stream()
+    public List<StoreResponse> listStores(@RequestParam(value = "categoryCode", required = false) Integer categoryCode) {
+        return service.getStoresByCategoryCode(categoryCode).stream()
                 .map(StoreResponse::fromEntity)
+                .peek(r -> {
+                    r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
+                    r.setImageUrls(imageService.listImageUrls(r.getStoreId(), 10));
+                })
                 .toList();
     }
 
@@ -36,7 +44,20 @@ public class StoreController {
     public StoreResponse storeDetail(@PathVariable String storeId) {
         Store store = service.getStore(storeId);
         int availableSeats = service.getAvailableSeats(storeId);
-        return StoreResponse.fromEntityWithSeats(store, availableSeats);
+        StoreResponse response = StoreResponse.fromEntityWithSeats(store, availableSeats);
+        response.setImageUrl(imageService.getImageUrl(response.getStoreId()));
+        response.setImageUrls(imageService.listImageUrls(response.getStoreId(), 10));
+        return response;
+    }
+
+    /** 가게 위치(위경도) 전용 API */
+    @GetMapping("/{storeId}/location")
+    public Map<String, String> getStoreLocation(@PathVariable String storeId) {
+        Store store = service.getStore(storeId);
+        return Map.of(
+                "latitude", store.getLatitude(),
+                "longitude", store.getLongitude()
+        );
     }
 
     /** Booking Service에서 호출할 REST API (좌석 정보 업데이트) */
@@ -52,6 +73,21 @@ public class StoreController {
     @GetMapping("/{storeId}/available-seats")
     public int getAvailableSeats(@PathVariable String storeId) {
         return service.getAvailableSeats(storeId);
+    }
+
+    /** 가게 목록을 카테고리명(한식/일식/양식/중식/카페)으로 그룹핑하여 반환 */
+    @GetMapping("/group-by-category")
+    public Map<String, List<StoreResponse>> groupByCategory() {
+        return service.groupStoresByKoreanCategoryName().entrySet().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        java.util.Map.Entry::getKey,
+                        e -> e.getValue().stream().map(StoreResponse::fromEntity)
+                                .peek(r -> {
+                                    r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
+                                    r.setImageUrls(imageService.listImageUrls(r.getStoreId(), 10));
+                                })
+                                .toList()
+                ));
     }
 
     /** 예약 확정 시: 사용중 좌석 증가 */
