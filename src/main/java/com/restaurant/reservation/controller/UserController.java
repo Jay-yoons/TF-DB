@@ -37,7 +37,12 @@ import java.util.ArrayList;
  */
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*") // CORS 설정 - 모든 도메인에서 접근 허용
+@CrossOrigin(origins = {
+    "http://localhost:3000",  // Vue.js 개발 서버
+    "http://localhost:8080",  // Vite 개발 서버
+    "http://localhost:8081",  // 추가 개발 서버
+    "http://localhost:8082"   // User Service 자체
+})
 public class UserController {
     
     // 로깅을 위한 Logger 인스턴스
@@ -123,7 +128,7 @@ public class UserController {
             String loginUrl = cognitoService.generateLoginUrl(state);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("loginUrl", loginUrl);
+            response.put("url", loginUrl);  // 프론트엔드에서 기대하는 필드명
             response.put("state", state);
             
             logger.info("Cognito 로그인 URL 생성 완료");
@@ -141,12 +146,36 @@ public class UserController {
      */
     @GetMapping("/login/dummy")
     public ResponseEntity<Map<String, Object>> dummyLogin(@RequestParam String state) {
-        // 실제 배포환경에서는 더미 로그인 비활성화
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", "더미 로그인은 개발 환경에서만 사용 가능합니다.");
-        
-        return ResponseEntity.badRequest().body(response);
+        try {
+            logger.info("더미 로그인 요청: state={}", state);
+            
+            // 더미 사용자 정보 생성
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("sub", "dummy-user-123");
+            userInfo.put("username", "더미사용자");
+            userInfo.put("email", "dummy@example.com");
+            userInfo.put("name", "더미사용자");
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("accessToken", "dummy-access-token-1234567890");
+            response.put("idToken", "dummy-id-token-1234567890");
+            response.put("refreshToken", "dummy-refresh-token-1234567890");
+            response.put("tokenType", "Bearer");
+            response.put("expiresIn", 3600);
+            response.put("userInfo", userInfo);
+            response.put("message", "더미 로그인 성공");
+            
+            logger.info("더미 로그인 완료: userId={}", userInfo.get("sub"));
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("더미 로그인 중 오류 발생", e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "더미 로그인 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
     
     /**
@@ -305,6 +334,41 @@ public class UserController {
         response.put("status", "UP");
         response.put("timestamp", System.currentTimeMillis());
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * 대시보드 통계 데이터 조회
+     * 프론트엔드 HomePage에서 사용
+     */
+    @GetMapping("/dashboard/counts")
+    public ResponseEntity<Map<String, Object>> getDashboardCounts() {
+        try {
+            logger.info("대시보드 통계 데이터 조회 요청");
+            
+            Map<String, Object> response = new HashMap<>();
+            
+            if (cognitoConfig.isDummyMode()) {
+                // 더미 모드: 더미 통계 데이터 반환
+                response.put("stores", 15);
+                response.put("members", 250);
+                response.put("bookings", 89);
+                logger.info("더미 모드 대시보드 통계 조회 완료");
+            } else {
+                // 실제 데이터베이스에서 통계 조회
+                long userCount = userService.getUserCount();
+                // TODO: Store Service와 Reservation Service에서 데이터 가져오기
+                response.put("stores", 0);  // Store Service 연동 필요
+                response.put("members", userCount);
+                response.put("bookings", 0); // Reservation Service 연동 필요
+                logger.info("대시보드 통계 조회 완료: users={}", userCount);
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("대시보드 통계 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     /**
