@@ -35,7 +35,7 @@ RUN ./gradlew build -x test --no-daemon --stacktrace || \
     (sleep 30 && ./gradlew build -x test --no-daemon --stacktrace)
 
 # Runtime stage
-FROM openjdk:17-jre-slim
+FROM openjdk:17-jdk-slim
 
 # Install curl for health check
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
