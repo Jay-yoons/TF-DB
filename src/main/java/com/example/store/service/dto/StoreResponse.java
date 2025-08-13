@@ -15,6 +15,7 @@ import lombok.Builder;
  * - seatNum: 전체 좌석 수
  * - serviceTime: 영업시간 문자열(예: "09:00~21:00")
  * - availableSeats: 여유 좌석 수(= 전체 좌석 - 사용중 좌석)
+ * - openNow/openStatus: 현재 영업 상태
  */
 @Getter
 @Setter
@@ -32,6 +33,10 @@ public class StoreResponse {
     private Integer availableSeats; // 선택 응답 필드
     private String imageUrl; // S3 공개 URL 또는 프록시 URL
     private java.util.List<String> imageUrls; // 다중 이미지 지원
+
+    // 추가 필드: 현재 영업 상태
+    private Boolean openNow;    // true: 영업중, false/null: 종료/정보없음
+    private String openStatus;  // "영업중" / "영업종료"
 
     public static StoreResponse fromEntity(com.example.store.service.entity.Store store) {
         com.example.store.service.entity.Category category = com.example.store.service.entity.Category.fromCode(store.getCategoryCode());

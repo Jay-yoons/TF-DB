@@ -60,9 +60,22 @@ public class DataInitializer implements CommandLineRunner {
                 .serviceTime("10:00~22:00")
                 .build();
 
+        // 영업 종료 확인용 가상 가게: 08:00~14:00만 영업
+        Store store4 = Store.builder()
+                .storeId("A004")
+                .storeName("테스트 브런치 카페")
+                .categoryCode(5) // 예: 카페
+                .storeLocation("서울 강남구")
+                .longitude("127.0270000")
+                .latitude("37.4988000")
+                .seatNum(20)
+                .serviceTime("08:00~14:00")
+                .build();
+
         Store savedStore1 = storeRepository.save(store1);
         Store savedStore2 = storeRepository.save(store2);
         Store savedStore3 = storeRepository.save(store3);
+        Store savedStore4 = storeRepository.save(store4);
 
         // StoreSeat 초기 데이터 추가
         StoreSeat storeSeat1 = StoreSeat.builder()
@@ -80,10 +93,16 @@ public class DataInitializer implements CommandLineRunner {
                 .inUsingSeat(0)
                 .build();
 
+        StoreSeat storeSeat4 = StoreSeat.builder()
+                .storeId(savedStore4.getStoreId())
+                .inUsingSeat(0)
+                .build();
+
         storeSeatRepository.save(storeSeat1);
         storeSeatRepository.save(storeSeat2);
         storeSeatRepository.save(storeSeat3);
+        storeSeatRepository.save(storeSeat4);
 
-        System.out.println("테스트 데이터가 초기화되었습니다!");
+        System.out.println("테스트 데이터가 초기화되었습니다! (A001~A004)");
     }
 }

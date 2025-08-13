@@ -115,3 +115,67 @@ export async function getStoreAvgScore(storeId: string): Promise<number | null> 
   const reviews = await getStoreReviews(storeId)
   return computeAverageScore(reviews)
 }
+// TypeScript
+// ... 기존 API 함수/타입은 유지하세요.
+
+// === KST 기준 영업 상태 유틸 ===
+export function getKstMinutesNow(): number {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Seoul',
+  }).formatToParts(new Date())
+  const hh = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0', 10)
+  const mm = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0', 10)
+  return hh * 60 + mm
+}
+
+function parseHmToMinutes(hhmm: string): number | null {
+  const [hs, ms] = hhmm.split(':')
+  const h = parseInt(hs ?? '', 10)
+  const m = parseInt(ms ?? '', 10)
+  if (h === 24 && m === 0) return 1440 // 24:00
+  if (Number.isFinite(h) && Number.isFinite(m) && h >= 0 && h < 24 && m >= 0 && m < 60) {
+    return h * 60 + m
+  }
+  return null
+}
+
+function parseServiceTimeToRanges(serviceTime: string): Array<{ start: number; end: number }> {
+  if (!serviceTime) return []
+  return serviceTime
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(seg => {
+      const [a, b] = seg.split('~').map(v => v.trim())
+      const start = parseHmToMinutes(a)
+      const end = parseHmToMinutes(b)
+      if (start == null || end == null) return null
+      return { start, end }
+    })
+    .filter(Boolean) as Array<{ start: number; end: number }>
+}
+
+export function isOpenNowKST(serviceTime: string): boolean {
+  const now = getKstMinutesNow()
+  const ranges = parseServiceTimeToRanges(serviceTime)
+  for (const { start, end } of ranges) {
+    if (start === end && end !== 1440) continue
+    if (end === 1440) {
+      // 24:00 (당일 끝까지)
+      if (now >= start) return true
+    } else if (end > start) {
+      if (now >= start && now < end) return true
+    } else {
+      // 심야 구간
+      if (now >= start || now < end) return true
+    }
+  }
+  return false
+}
+
+export function openStatusKST(serviceTime: string): '영업중' | '영업종료' {
+  return isOpenNowKST(serviceTime) ? '영업중' : '영업종료'
+}

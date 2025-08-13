@@ -31,10 +31,14 @@ public class StoreController {
     @GetMapping
     public List<StoreResponse> listStores(@RequestParam(value = "categoryCode", required = false) Integer categoryCode) {
         return service.getStoresByCategoryCode(categoryCode).stream()
-                .map(StoreResponse::fromEntity)
-                .peek(r -> {
+                .map(store -> {
+                    StoreResponse r = StoreResponse.fromEntity(store);
                     r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
                     r.setImageUrls(imageService.listImageUrls(r.getStoreId(), 10));
+                    // 영업 상태 세팅
+                    r.setOpenNow(service.isOpenNow(store));
+                    r.setOpenStatus(service.openStatus(store));
+                    return r;
                 })
                 .toList();
     }
@@ -47,6 +51,9 @@ public class StoreController {
         StoreResponse response = StoreResponse.fromEntityWithSeats(store, availableSeats);
         response.setImageUrl(imageService.getImageUrl(response.getStoreId()));
         response.setImageUrls(imageService.listImageUrls(response.getStoreId(), 10));
+        // 영업 상태 세팅
+        response.setOpenNow(service.isOpenNow(store));
+        response.setOpenStatus(service.openStatus(store));
         return response;
     }
 
@@ -81,10 +88,13 @@ public class StoreController {
         return service.groupStoresByKoreanCategoryName().entrySet().stream()
                 .collect(java.util.stream.Collectors.toMap(
                         java.util.Map.Entry::getKey,
-                        e -> e.getValue().stream().map(StoreResponse::fromEntity)
-                                .peek(r -> {
+                        e -> e.getValue().stream().map(store -> {
+                                    StoreResponse r = StoreResponse.fromEntity(store);
                                     r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
                                     r.setImageUrls(imageService.listImageUrls(r.getStoreId(), 10));
+                                    r.setOpenNow(service.isOpenNow(store));
+                                    r.setOpenStatus(service.openStatus(store));
+                                    return r;
                                 })
                                 .toList()
                 ));

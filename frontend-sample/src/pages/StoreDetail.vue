@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import StoreMap from './StoreMap.vue'
 import {
@@ -11,6 +11,8 @@ import {
   getStoreReviews,
   createReview,
   computeAverageScore,
+  isOpenNowKST,
+  openStatusKST,
   type ReviewDto,
 } from '../../storeApiService'
 
@@ -21,6 +23,9 @@ interface StoreDetailType {
   seatNum: number
   availableSeats: number
   imageUrl?: string | null
+  serviceTime?: string
+  openNow?: boolean | null
+  openStatus?: string | null
 }
 
 const route = useRoute()
@@ -37,9 +42,18 @@ const busy = ref<boolean>(false)
 // 리뷰/평균
 const reviews = ref<ReviewDto[]>([])
 const avgScore = ref<number | null>(null)
-const reviewUserId = ref<string>('demo-user')
+const reviewUserId = ref<string>('demo-user') // 샘플 계정
 const reviewScore = ref<number>(5)
 const reviewComment = ref<string>('')
+
+// KST 기준 영업 상태(백엔드 값 우선, 없으면 계산)
+const openInfo = computed(() => {
+  if (!detail.value) return { label: '영업종료', open: false }
+  const d = detail.value
+  const open = typeof d.openNow === 'boolean' ? d.openNow : isOpenNowKST(d.serviceTime ?? '')
+  const label = d.openStatus ?? openStatusKST(d.serviceTime ?? '')
+  return { open, label }
+})
 
 async function loadAll() {
   if (!storeId.value) return
@@ -122,11 +136,15 @@ watch(() => route.params.storeId, (v) => {
       <div class="back"><router-link to="/">← 돌아가기</router-link></div>
       <h2 class="title">
         {{ detail?.storeName || '상세' }}
+        <span v-if="openInfo.open" class="badge open">{{ openInfo.label }}</span>
+        <span v-else class="badge closed">{{ openInfo.label }}</span>
         <span class="rating" v-if="avgScore !== null">★ {{ avgScore }}</span>
         <span class="no-rating" v-else>평점 없음</span>
       </h2>
       <div class="sub">좌석 {{ detail?.seatNum }} · {{ detail?.storeLocation }}</div>
+      <div class="hours" v-if="detail?.serviceTime">영업시간 {{ detail?.serviceTime }}</div>
 
+      <!-- 지도 (가게 위치) -->
       <div class="map-card">
         <StoreMap v-if="lat !== null && lng !== null" :lat="lat!" :lng="lng!" />
         <div v-else class="map-fallback">위치 정보를 불러오지 못했습니다.</div>
@@ -169,6 +187,7 @@ watch(() => route.params.storeId, (v) => {
       </div>
     </div>
 
+    <!-- 예약(좌석 증감) 사이드 패널 -->
     <aside class="aside">
       <img v-if="detail?.imageUrl" :src="detail.imageUrl" alt="thumb" class="aside-thumb" />
       <div class="panel">
@@ -193,10 +212,14 @@ watch(() => route.params.storeId, (v) => {
 <style scoped>
 .wrap { padding: 16px; display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
 .back { margin-bottom: 8px; }
-.title { margin: 0; display: flex; align-items: center; gap: 10px; }
+.title { margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.badge { padding: 2px 6px; border-radius: 6px; font-size: 12px; }
+.badge.open { background: #e8f5e9; color: #2e7d32; }
+.badge.closed { background: #ffebee; color: #c62828; }
 .rating { color: #ff9800; font-weight: 700; font-size: 18px; }
 .no-rating { color: #999; font-size: 12px; }
-.sub { color: #666; margin-bottom: 12px; }
+.sub { color: #666; margin-bottom: 6px; }
+.hours { color: #444; font-size: 13px; margin-bottom: 12px; }
 .map-card { border: 1px solid #eee; border-radius: 8px; padding: 8px; min-height: 420px; }
 .map-fallback { padding: 12px; }
 .aside-thumb { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
@@ -204,8 +227,6 @@ watch(() => route.params.storeId, (v) => {
 .panel-title { font-weight: 600; margin-bottom: 8px; }
 .row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .num { width: 80px; }
-.txt { padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; }
-.ta { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; resize: vertical; }
 .review-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .review-item { border: 1px solid #f0f0f0; border-radius: 8px; padding: 10px; }
 .review-head { display: flex; justify-content: space-between; color: #333; }
