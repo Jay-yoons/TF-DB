@@ -81,6 +81,12 @@ ALTER DATABASE SET TIME_ZONE = 'Asia/Seoul';
 시스템 타임존 변경 후 DB 재시작 필요.
 
 ALTER DATABASE SET TIME_ZONE = '+09:00';
+
+SELECT parameter, value
+FROM   nls_database_parameters
+WHERE  parameter IN ('NLS_CHARACTERSET', 'NLS_NCHAR_CHARACTERSET');
+
+SELECT * FROM v$nls_parameters;
 ---------------------------------------------PDB_STORE-----------------------------------------------------
 ALTER SESSION SET CONTAINER = PDB_STORE;
 CREATE TABLE STORES 
