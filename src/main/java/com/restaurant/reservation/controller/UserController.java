@@ -536,29 +536,39 @@ public class UserController {
      * 마이페이지 - 내 즐겨찾기 가게 목록 조회
      */
     @GetMapping("/me/favorites")
-    public ResponseEntity<List<FavoriteStoreDto>> getMyFavoriteStores() {
+    public ResponseEntity<List<FavoriteStoreDto>> getMyFavorites() {
         try {
             String userId = getCurrentUserId();
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-
             logger.info("내 즐겨찾기 가게 목록 조회 요청: userId={}", userId);
 
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 즐겨찾기 데이터 반환
-                List<FavoriteStoreDto> favoriteStores = getDummyFavoriteStores(userId);
-                logger.info("더미 모드 내 즐겨찾기 가게 목록 조회 완료: userId={}, count={}", userId, favoriteStores.size());
-                return ResponseEntity.ok(favoriteStores);
-            }
-
-            List<FavoriteStoreDto> favoriteStores = userService.getFavoriteStores(userId);
-
-            logger.info("내 즐겨찾기 가게 목록 조회 완료: userId={}, count={}", userId, favoriteStores.size());
-            return ResponseEntity.ok(favoriteStores);
+            List<FavoriteStoreDto> favorites = userService.getFavoriteStores(userId);
+            
+            logger.info("내 즐겨찾기 가게 목록 조회 완료: userId={}, count={}", userId, favorites.size());
+            return ResponseEntity.ok(favorites);
 
         } catch (Exception e) {
             logger.error("내 즐겨찾기 가게 목록 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 뷰를 사용한 내 즐겨찾기 가게 상세 정보 조회 (개선된 방식)
+     * DB 담당자와 협의 후 사용
+     */
+    @GetMapping("/me/favorites/details")
+    public ResponseEntity<List<Map<String, Object>>> getMyFavoritesWithDetails() {
+        try {
+            String userId = getCurrentUserId();
+            logger.info("뷰를 사용한 내 즐겨찾기 가게 상세 정보 조회 요청: userId={}", userId);
+
+            List<Map<String, Object>> favorites = userService.getFavoriteStoresWithDetails(userId);
+            
+            logger.info("뷰를 사용한 내 즐겨찾기 가게 상세 정보 조회 완료: userId={}, count={}", userId, favorites.size());
+            return ResponseEntity.ok(favorites);
+
+        } catch (Exception e) {
+            logger.error("뷰를 사용한 내 즐겨찾기 가게 상세 정보 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -698,6 +708,69 @@ public class UserController {
 
         } catch (Exception e) {
             logger.error("즐겨찾기 가게 개수 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 뷰를 사용한 내 리뷰 상세 정보 조회 (개선된 방식)
+     * DB 담당자와 협의 후 사용
+     */
+    @GetMapping("/me/reviews/details")
+    public ResponseEntity<List<Map<String, Object>>> getMyReviewsWithDetails() {
+        try {
+            String userId = getCurrentUserId();
+            logger.info("뷰를 사용한 내 리뷰 상세 정보 조회 요청: userId={}", userId);
+
+            List<Map<String, Object>> reviews = userService.getUserReviewsWithDetails(userId);
+            
+            logger.info("뷰를 사용한 내 리뷰 상세 정보 조회 완료: userId={}, count={}", userId, reviews.size());
+            return ResponseEntity.ok(reviews);
+
+        } catch (Exception e) {
+            logger.error("뷰를 사용한 내 리뷰 상세 정보 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 뷰를 사용한 내 예약 현황 조회 (개선된 방식)
+     * DB 담당자와 협의 후 사용
+     */
+    @GetMapping("/me/bookings/details")
+    public ResponseEntity<List<Map<String, Object>>> getMyBookingsWithDetails() {
+        try {
+            String userId = getCurrentUserId();
+            logger.info("뷰를 사용한 내 예약 현황 조회 요청: userId={}", userId);
+
+            List<Map<String, Object>> bookings = userService.getUserBookingsWithDetails(userId);
+            
+            logger.info("뷰를 사용한 내 예약 현황 조회 완료: userId={}, count={}", userId, bookings.size());
+            return ResponseEntity.ok(bookings);
+
+        } catch (Exception e) {
+            logger.error("뷰를 사용한 내 예약 현황 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 뷰를 사용한 내 대시보드 통계 조회 (개선된 방식)
+     * DB 담당자와 협의 후 사용
+     */
+    @GetMapping("/me/dashboard/stats")
+    public ResponseEntity<Map<String, Object>> getMyDashboardStats() {
+        try {
+            String userId = getCurrentUserId();
+            logger.info("뷰를 사용한 내 대시보드 통계 조회 요청: userId={}", userId);
+
+            Map<String, Object> dashboardStats = userService.getUserDashboardStats(userId);
+            
+            logger.info("뷰를 사용한 내 대시보드 통계 조회 완료: userId={}", userId);
+            return ResponseEntity.ok(dashboardStats);
+
+        } catch (Exception e) {
+            logger.error("뷰를 사용한 내 대시보드 통계 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

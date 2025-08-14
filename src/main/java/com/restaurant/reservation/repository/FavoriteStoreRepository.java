@@ -76,4 +76,48 @@ public interface FavoriteStoreRepository extends JpaRepository<FavoriteStore, Lo
      */
     @Query("SELECT fs.storeId FROM FavoriteStore fs WHERE fs.userId = :userId")
     List<String> findStoreIdsByUserId(@Param("userId") String userId);
+    
+    // =============================================================================
+    // 뷰를 사용한 조회 메서드들 (DB 담당자와 협의 후 추가)
+    // =============================================================================
+    
+    /**
+     * 뷰를 사용하여 사용자의 즐겨찾기 가게 상세 정보 조회
+     * V_USER_FAVORITE_STORES 뷰 사용
+     * 
+     * @param userId 사용자 ID
+     * @return 즐겨찾기 가게 상세 정보 목록
+     */
+    @Query(value = "SELECT * FROM V_USER_FAVORITE_STORES WHERE USER_ID = :userId ORDER BY FAVORITE_CREATED_AT DESC", nativeQuery = true)
+    List<Object[]> findFavoriteStoresWithDetails(@Param("userId") String userId);
+    
+    /**
+     * 뷰를 사용하여 사용자의 리뷰 상세 정보 조회
+     * V_USER_REVIEWS 뷰 사용
+     * 
+     * @param userId 사용자 ID
+     * @return 사용자 리뷰 상세 정보 목록
+     */
+    @Query(value = "SELECT * FROM V_USER_REVIEWS WHERE USER_ID = :userId ORDER BY REVIEW_ID DESC", nativeQuery = true)
+    List<Object[]> findUserReviewsWithDetails(@Param("userId") String userId);
+    
+    /**
+     * 뷰를 사용하여 사용자의 예약 현황 조회
+     * V_USER_BOOKINGS 뷰 사용
+     * 
+     * @param userId 사용자 ID
+     * @return 사용자 예약 현황 목록
+     */
+    @Query(value = "SELECT * FROM V_USER_BOOKINGS WHERE USER_ID = :userId ORDER BY BOOKING_DATE DESC", nativeQuery = true)
+    List<Object[]> findUserBookingsWithDetails(@Param("userId") String userId);
+    
+    /**
+     * 뷰를 사용하여 사용자 대시보드 통계 조회
+     * V_USER_DASHBOARD 뷰 사용
+     * 
+     * @param userId 사용자 ID
+     * @return 사용자 대시보드 통계 정보
+     */
+    @Query(value = "SELECT * FROM V_USER_DASHBOARD WHERE USER_ID = :userId", nativeQuery = true)
+    Object[] findUserDashboardStats(@Param("userId") String userId);
 }

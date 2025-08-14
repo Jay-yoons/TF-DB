@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * 사용자 서비스 클래스
@@ -193,7 +195,7 @@ public class UserService {
     // =============================================================================
 
     /**
-     * 사용자의 즐겨찾기 가게 목록 조회
+     * 사용자의 즐겨찾기 가게 목록 조회 (기존 방식 - 더미 데이터 사용)
      */
     @Transactional(readOnly = true)
     public List<FavoriteStoreDto> getFavoriteStores(String userId) {
@@ -219,6 +221,228 @@ public class UserService {
         
         logger.info("즐겨찾기 가게 목록 조회 완료: userId={}, count={}", userId, favoriteStoreDtos.size());
         return favoriteStoreDtos;
+    }
+
+    /**
+     * 뷰를 사용하여 사용자의 즐겨찾기 가게 상세 정보 조회 (개선된 방식)
+     * DB 담당자와 협의 후 사용
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getFavoriteStoresWithDetails(String userId) {
+        logger.info("뷰를 사용한 즐겨찾기 가게 상세 정보 조회: userId={}", userId);
+        
+        try {
+            List<Object[]> results = favoriteStoreRepository.findFavoriteStoresWithDetails(userId);
+            List<Map<String, Object>> favoriteStores = new ArrayList<>();
+            
+            for (Object[] row : results) {
+                Map<String, Object> store = new HashMap<>();
+                store.put("favStoreId", row[0]);
+                store.put("userId", row[1]);
+                store.put("storeId", row[2]);
+                store.put("storeName", row[3]);
+                store.put("storeLocation", row[4]);
+                store.put("serviceTime", row[5]);
+                store.put("categoryCode", row[6]);
+                store.put("categoryName", row[7]);
+                store.put("seatNum", row[8]);
+                store.put("favoriteCreatedAt", row[9]);
+                favoriteStores.add(store);
+            }
+            
+            logger.info("뷰를 사용한 즐겨찾기 가게 조회 완료: userId={}, count={}", userId, favoriteStores.size());
+            return favoriteStores;
+            
+        } catch (Exception e) {
+            logger.error("뷰 조회 중 오류 발생: userId={}, error={}", userId, e.getMessage());
+            // 뷰가 없거나 오류 발생 시 기존 방식으로 fallback
+            logger.info("기존 방식으로 fallback: userId={}", userId);
+            return getFavoriteStoresFallback(userId);
+        }
+    }
+
+    /**
+     * 뷰를 사용하여 사용자의 리뷰 상세 정보 조회
+     * DB 담당자와 협의 후 사용
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getUserReviewsWithDetails(String userId) {
+        logger.info("뷰를 사용한 사용자 리뷰 상세 정보 조회: userId={}", userId);
+        
+        try {
+            List<Object[]> results = favoriteStoreRepository.findUserReviewsWithDetails(userId);
+            List<Map<String, Object>> reviews = new ArrayList<>();
+            
+            for (Object[] row : results) {
+                Map<String, Object> review = new HashMap<>();
+                review.put("reviewId", row[0]);
+                review.put("userId", row[1]);
+                review.put("storeId", row[2]);
+                review.put("storeName", row[3]);
+                review.put("storeLocation", row[4]);
+                review.put("categoryCode", row[5]);
+                review.put("categoryName", row[6]);
+                review.put("comment", row[7]);
+                review.put("score", row[8]);
+                review.put("reviewIdStr", row[9]);
+                reviews.add(review);
+            }
+            
+            logger.info("뷰를 사용한 리뷰 조회 완료: userId={}, count={}", userId, reviews.size());
+            return reviews;
+            
+        } catch (Exception e) {
+            logger.error("뷰 조회 중 오류 발생: userId={}, error={}", userId, e.getMessage());
+            // 뷰가 없거나 오류 발생 시 기존 방식으로 fallback
+            logger.info("기존 방식으로 fallback: userId={}", userId);
+            return getUserReviewsFallback(userId);
+        }
+    }
+
+    /**
+     * 뷰를 사용하여 사용자의 예약 현황 조회
+     * DB 담당자와 협의 후 사용
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getUserBookingsWithDetails(String userId) {
+        logger.info("뷰를 사용한 사용자 예약 현황 조회: userId={}", userId);
+        
+        try {
+            List<Object[]> results = favoriteStoreRepository.findUserBookingsWithDetails(userId);
+            List<Map<String, Object>> bookings = new ArrayList<>();
+            
+            for (Object[] row : results) {
+                Map<String, Object> booking = new HashMap<>();
+                booking.put("bookingNum", row[0]);
+                booking.put("userId", row[1]);
+                booking.put("storeId", row[2]);
+                booking.put("storeName", row[3]);
+                booking.put("storeLocation", row[4]);
+                booking.put("categoryCode", row[5]);
+                booking.put("categoryName", row[6]);
+                booking.put("bookingDate", row[7]);
+                booking.put("bookingStateCode", row[8]);
+                booking.put("stateName", row[9]);
+                booking.put("count", row[10]);
+                booking.put("inUsingSeat", row[11]);
+                booking.put("seatNum", row[12]);
+                bookings.add(booking);
+            }
+            
+            logger.info("뷰를 사용한 예약 조회 완료: userId={}, count={}", userId, bookings.size());
+            return bookings;
+            
+        } catch (Exception e) {
+            logger.error("뷰 조회 중 오류 발생: userId={}, error={}", userId, e.getMessage());
+            // 뷰가 없거나 오류 발생 시 빈 리스트 반환
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 뷰를 사용하여 사용자 대시보드 통계 조회
+     * DB 담당자와 협의 후 사용
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getUserDashboardStats(String userId) {
+        logger.info("뷰를 사용한 사용자 대시보드 통계 조회: userId={}", userId);
+        
+        try {
+            Object[] result = favoriteStoreRepository.findUserDashboardStats(userId);
+            Map<String, Object> dashboard = new HashMap<>();
+            
+            if (result != null) {
+                dashboard.put("userId", result[0]);
+                dashboard.put("userName", result[1]);
+                dashboard.put("phoneNumber", result[2]);
+                dashboard.put("userLocation", result[3]);
+                dashboard.put("isActive", result[4]);
+                dashboard.put("userCreatedAt", result[5]);
+                dashboard.put("favoriteCount", result[6]);
+                dashboard.put("reviewCount", result[7]);
+                dashboard.put("avgReviewScore", result[8]);
+                dashboard.put("totalBookingCount", result[9]);
+                dashboard.put("activeBookingCount", result[10]);
+                dashboard.put("cancelledBookingCount", result[11]);
+            }
+            
+            logger.info("뷰를 사용한 대시보드 통계 조회 완료: userId={}", userId);
+            return dashboard;
+            
+        } catch (Exception e) {
+            logger.error("뷰 조회 중 오류 발생: userId={}, error={}", userId, e.getMessage());
+            // 뷰가 없거나 오류 발생 시 기본 정보만 반환
+            return getUserDashboardStatsFallback(userId);
+        }
+    }
+
+    // =============================================================================
+    // Fallback 메서드들 (뷰가 없을 때 사용)
+    // =============================================================================
+
+    /**
+     * 즐겨찾기 가게 조회 fallback (기존 방식)
+     */
+    private List<Map<String, Object>> getFavoriteStoresFallback(String userId) {
+        List<FavoriteStore> favoriteStores = favoriteStoreRepository.findByUserId(userId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        
+        for (FavoriteStore fs : favoriteStores) {
+            Map<String, Object> store = new HashMap<>();
+            store.put("favStoreId", fs.getFavStoreId());
+            store.put("userId", fs.getUserId());
+            store.put("storeId", fs.getStoreId());
+            store.put("storeName", getDummyStoreName(fs.getStoreId()));
+            store.put("storeLocation", "주소 정보 없음");
+            store.put("serviceTime", "영업시간 정보 없음");
+            store.put("categoryCode", "UNKNOWN");
+            store.put("categoryName", "알 수 없음");
+            store.put("seatNum", 0);
+            store.put("favoriteCreatedAt", fs.getCreatedAt());
+            result.add(store);
+        }
+        
+        return result;
+    }
+
+    /**
+     * 사용자 리뷰 조회 fallback (기존 방식)
+     */
+    private List<Map<String, Object>> getUserReviewsFallback(String userId) {
+        // Store Service Integration을 사용하여 리뷰 조회
+        try {
+            // StoreServiceIntegration을 주입받아야 함
+            // 현재는 빈 리스트 반환
+            return new ArrayList<>();
+        } catch (Exception e) {
+            logger.error("리뷰 조회 fallback 실패: userId={}, error={}", userId, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 사용자 대시보드 통계 fallback (기존 방식)
+     */
+    private Map<String, Object> getUserDashboardStatsFallback(String userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        Map<String, Object> dashboard = new HashMap<>();
+        
+        if (user != null) {
+            dashboard.put("userId", user.getUserId());
+            dashboard.put("userName", user.getUserName());
+            dashboard.put("phoneNumber", user.getPhoneNumber());
+            dashboard.put("userLocation", user.getUserLocation());
+            dashboard.put("isActive", user.isActive());
+            dashboard.put("userCreatedAt", user.getCreatedAt());
+            dashboard.put("favoriteCount", favoriteStoreRepository.countByUserId(userId));
+            dashboard.put("reviewCount", 0); // Store Service 연동 필요
+            dashboard.put("avgReviewScore", 0.0);
+            dashboard.put("totalBookingCount", 0); // Reservation Service 연동 필요
+            dashboard.put("activeBookingCount", 0);
+            dashboard.put("cancelledBookingCount", 0);
+        }
+        
+        return dashboard;
     }
 
     /**
