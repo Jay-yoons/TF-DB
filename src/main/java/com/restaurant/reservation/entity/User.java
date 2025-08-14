@@ -37,7 +37,7 @@ public class User {
      * 최대 15자까지 저장 가능
      */
     @Id
-    @Column(name = "USER_ID", length = 15)
+    @Column(name = "USER_ID", length = 50)
     private String userId;
     
     /**
