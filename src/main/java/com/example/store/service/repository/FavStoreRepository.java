@@ -37,12 +37,5 @@ public interface FavStoreRepository extends JpaRepository<FavStore, Long> {
      */
     Optional<FavStore> findByStoreIdAndUserId(String storeId, String userId);
 
-    /**
-     * 사용자의 즐겨찾기 전체 조회.
-     * - 결과가 많을 수 있으므로 실제 화면에서는 Pageable 확장을 고려
-     *
-     * @param userId 사용자 식별자
-     * @return 즐겨찾기 엔티티 리스트(최신순 정렬이 필요하면 Sort/Specification 사용)
-     */
-    List<FavStore> findByUserId(String userId);
+    // [주의] 사용자별 즐겨찾기 목록은 사용자/즐겨찾기 도메인에서 제공하는 것이 바람직하여 본 서비스에서는 제공하지 않습니다.
 }

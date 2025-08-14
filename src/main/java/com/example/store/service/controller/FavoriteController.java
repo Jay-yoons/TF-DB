@@ -36,9 +36,13 @@ public class FavoriteController {
         favoriteService.removeFavorite(userId, storeId);
     }
 
-    // [조회] 나의 즐겨찾기 목록
-    @GetMapping("/me")
-    public List<FavStore> my(@RequestParam String userId) {
-        return favoriteService.getMyFavorites(userId);
+    // [조회] 즐겨찾기 여부(단건)
+    // - 스토어 상세에서 '내 즐겨찾기인지' 확인 용도로만 사용
+    // - 응답 최소화: { "isFavorite": true/false }
+    @GetMapping("/status")
+    public java.util.Map<String, Boolean> isFavorite(@RequestParam String userId, @RequestParam String storeId) {
+        boolean val = favoriteService.isFavorite(userId, storeId);
+        return java.util.Collections.singletonMap("isFavorite", val);
     }
+
 }

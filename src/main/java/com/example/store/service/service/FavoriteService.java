@@ -57,9 +57,11 @@ public class FavoriteService { // [중요] 파일명은 FavoriteService.java
     }
 
     /**
-     * 나의 즐겨찾기 목록.
+     * 즐겨찾기 여부(단건) 조회.
+     * - 사용자(userId)가 특정 매장(storeId)을 즐겨찾기에 추가했는지 여부만 반환
+     * - 목록은 사용자 도메인에서 제공
      */
-    public List<FavStore> getMyFavorites(String userId) {
-        return favStoreRepository.findByUserId(userId);
+    public boolean isFavorite(String userId, String storeId) {
+        return favStoreRepository.findByStoreIdAndUserId(storeId, userId).isPresent();
     }
 }
