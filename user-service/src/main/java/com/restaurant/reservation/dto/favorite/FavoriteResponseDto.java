@@ -1,0 +1,18 @@
+package com.restaurant.reservation.dto.favorite;
+
+import lombok.AllArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@AllArgsConstructor
+public class FavoriteResponseDto {
+    private Long favStoreId;
+    private String userId;
+    private String storeId;
+    private String storeName;
+    private String storeLocation;
+    private String categoryCode;
+    private Double averageRating;
+    private Boolean isOpen;
+    private LocalDateTime createdAt;
+}

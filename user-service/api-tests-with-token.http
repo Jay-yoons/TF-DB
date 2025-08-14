@@ -1,0 +1,78 @@
+### User Service API Tests with Auto Token Management
+
+# 환경 변수 설정
+@baseUrl = http://localhost:8082
+@contentType = application/json
+
+### 1. Cognito 로그인 URL 생성 (토큰 불필요)
+# @name loginUrl
+GET {{baseUrl}}/api/users/login/url
+
+### 2. 더미 데이터 생성 (개발용)
+# @name dummyData
+POST {{baseUrl}}/api/users/dummy/data
+Content-Type: {{contentType}}
+
+### 3. 더미 로그인 (개발용)
+# @name login
+GET {{baseUrl}}/api/users/login/dummy?state=test-state
+
+### 4. 로그인 응답에서 토큰 추출
+@accessToken = {{login.response.body.accessToken}}
+
+### 3. 내 정보 조회 (자동 토큰 사용)
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{accessToken}}
+
+### 4. 사용자 정보 수정 (자동 토큰 사용)
+PUT {{baseUrl}}/api/users/me
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "userName": "수정된 사용자명",
+  "phoneNumber": "010-9876-5432"
+}
+
+### 5. 로그아웃 (자동 토큰 사용)
+POST {{baseUrl}}/api/users/logout
+Authorization: Bearer {{accessToken}}
+
+### 6. 서비스 헬스체크 (토큰 불필요)
+GET {{baseUrl}}/api/users/health
+
+### 7. 마이페이지 - 내 리뷰 목록 조회 (JWT 토큰 필요)
+GET {{baseUrl}}/api/users/me/reviews
+Authorization: Bearer {{accessToken}}
+
+### 8. 특정 리뷰의 가게 정보 조회 (JWT 토큰 필요)
+GET {{baseUrl}}/api/users/me/reviews/1/store-info
+Authorization: Bearer {{accessToken}}
+
+### 9. 전체 서비스 헬스체크 (토큰 불필요)
+GET {{baseUrl}}/health
+
+### 10. 마이페이지 - 내 즐겨찾기 가게 목록 조회 (JWT 토큰 필요)
+GET {{baseUrl}}/api/users/me/favorites
+Authorization: Bearer {{accessToken}}
+
+### 11. 즐겨찾기 가게 추가 (JWT 토큰 필요)
+POST {{baseUrl}}/api/users/me/favorites
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "storeId": "store005"
+}
+
+### 12. 특정 가게의 즐겨찾기 상태 확인 (JWT 토큰 필요)
+GET {{baseUrl}}/api/users/me/favorites/store001/check
+Authorization: Bearer {{accessToken}}
+
+### 13. 내 즐겨찾기 가게 개수 조회 (JWT 토큰 필요)
+GET {{baseUrl}}/api/users/me/favorites/count
+Authorization: Bearer {{accessToken}}
+
+### 14. 즐겨찾기 가게 삭제 (JWT 토큰 필요)
+DELETE {{baseUrl}}/api/users/me/favorites/store005
+Authorization: Bearer {{accessToken}}
