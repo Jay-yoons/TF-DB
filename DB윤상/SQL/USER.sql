@@ -1,6 +1,6 @@
 CREATE TABLE USERS 
     ( 
-     USER_ID       VARCHAR2 (15 CHAR)  NOT NULL , 
+     USER_ID       VARCHAR2 (50 CHAR)  NOT NULL , 
      USER_NAME     VARCHAR2 (20 CHAR)  NOT NULL , 
      PHONE_NUMBER  VARCHAR2 (20 CHAR)  NOT NULL , 
      USER_LOCATION VARCHAR2 (50 CHAR) , 
@@ -10,7 +10,7 @@ CREATE TABLE USERS
 
 
 CREATE TABLE DELETE_FAIL_LOG_USER (
-    user_id varchar2(15),
+    user_id varchar2(50),
     fail_msg VARCHAR2(4000),
     fail_time TIMESTAMP
 );
