@@ -18,6 +18,7 @@ import lombok.*;
 public class ReviewDto {
     private Long reviewId;
     private String storeId;
+    private String storeName;
     private String userId;
     private String comment;
     private Integer score;
@@ -26,6 +27,7 @@ public class ReviewDto {
         return ReviewDto.builder()
                 .reviewId(review.getReviewId())
                 .storeId(review.getStoreId())
+                .storeName(review.getStoreName())
                 .userId(review.getUserId())
                 .comment(review.getComment())
                 .score(review.getScore())

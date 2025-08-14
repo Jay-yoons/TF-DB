@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { listStores, getStoreLocation, fetchMapsKey, getStoreAvgScore, isOpenNowKST, openStatusKST } from '../../storeApiService'
+// [수정] API 임포트 경로를 @ 별칭으로 고정
+import { listStores, getStoreLocation, fetchMapsKey, getStoreAvgScore, isOpenNowKST, openStatusKST } from "@/storeApiService"
+// [추가] Vue 조합 API 임포트
+import { ref, onMounted } from "vue"
 
+// [기존 유지] 타입/상태/함수들
 type StoreSummary = {
   storeId: string
   storeName: string

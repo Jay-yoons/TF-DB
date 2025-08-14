@@ -1,0 +1,239 @@
+/* [개선] 전역 디자인 시스템 & 유틸(모던 다크톤 + 유리카드 + 마이크로 인터랙션) */
+
+/* 웹 폰트(선택): Pretendard */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+:root{
+  /* 컬러 토큰 */
+  --bg: #0b0f14;
+  --bg-2: #0f141c;
+  --panel: rgba(14, 20, 28, 0.7);
+  --muted: #8b98b7;
+  --text: #e6edf3;
+  --accent: #7aa2ff;
+  --accent-2: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+
+  --card: rgba(17, 24, 39, 0.45);       /* 유리 카드 */
+  --card-strong: rgba(17, 24, 39, 0.75);
+  --border: 1px solid rgba(255,255,255,.08);
+  --radius: 16px;
+
+  /* 효과 */
+  --glass: blur(12px) saturate(120%);
+  --shadow-1: 0 6px 18px rgba(0,0,0,.35);
+  --shadow-2: 0 14px 40px rgba(0,0,0,.45);
+}
+
+html,body,#app{
+  height:100%;
+  background:
+    radial-gradient(800px 800px at 10% 10%, rgba(56, 96, 255, .12), transparent 50%),
+    radial-gradient(800px 800px at 90% 20%, rgba(34, 197, 94, .12), transparent 50%),
+    linear-gradient(180deg, #0a0e13 0%, #0b1017 100%);
+  color: var(--text);
+  font-family: Pretendard, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Noto Sans KR', 'Apple SD Gothic Neo', '맑은 고딕', Arial;
+}
+
+/* 컨테이너 */
+.container{ max-width: 1180px; margin: 0 auto; padding: 24px; }
+
+/* 글래스 카드 */
+.card{
+  background: var(--card);
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-2); background: var(--card-strong); }
+
+.p-16{ padding:16px; } .p-20{ padding:20px; } .p-24{ padding:24px; }
+.mt-8{ margin-top:8px; } .mt-12{ margin-top:12px; } .mt-16{ margin-top:16px; } .mt-24{ margin-top:24px; }
+
+.flex{ display:flex; } .items-center{ align-items:center; } .justify-between{ justify-content:space-between; }
+.gap-8{ gap:8px; } .gap-12{ gap:12px; } .gap-16{ gap:16px; } .gap-20{ gap:20px; }
+
+.h2{ margin:0; font-size:24px; font-weight:800; letter-spacing:.2px; }
+.sub{ color: var(--muted); font-size:13px; }
+
+.text-muted{ color: var(--muted); } .text-accent{ color: var(--accent); }
+
+/* 버튼 */
+.btn{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:10px 16px; border-radius: 12px;
+  border: var(--border);
+  background: rgba(18, 24, 36, .8);
+  color: var(--text);
+  cursor:pointer; transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
+  will-change: transform;
+}
+.btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.35); }
+.btn:active{ transform: translateY(0); }
+.btn:disabled{ opacity:.6; cursor: not-allowed; transform:none; }
+.btn-primary{ background: linear-gradient(135deg, #0e1a2b, #101e34); border-color: transparent; }
+.btn-ghost{ background: rgba(18, 24, 36, .5); }
+.btn-danger{ background: linear-gradient(135deg, #2a1515, #3b1717); color:#ffc7c7; }
+
+.fav-on{ background: linear-gradient(135deg, #182235, #1f2f54); color:#ffe08a; }
+.fav-off{ background: rgba(18, 24, 36, .7); color:#a5b4d6; }
+.icon{ width:18px; height:18px; display:inline-block; }
+
+/* 배지/칩 */
+.badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 10px; border-radius: 999px;
+  background: rgba(18, 24, 36, .6);
+  border: var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* 2열 그리드 */
+.grid{ display:grid; gap:20px; }
+.grid-2{ grid-template-columns: 1.2fr 1fr; }
+@media (max-width: 980px){ .grid-2{ grid-template-columns: 1fr; } }
+
+/* 히어로(상단 정보 바) */
+.hero{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+}
+
+/* 토스트(간단) */
+.toast{
+  position:fixed; right:18px; bottom:18px; z-index:9999;
+  padding:12px 14px; border-radius: 12px; border: var(--border);
+  background: rgba(0,0,0,.5); color:#fff; box-shadow: var(--shadow-2);
+  animation: toastIn .2s ease forwards;
+}
+@keyframes toastIn{ from{ transform: translateY(10px); opacity:.0 } to { transform: translateY(0); opacity:1 } }
+
+/* ===========================
+   Light Theme (CatchTable-like)
+   - 기존 다크 테마 유지 + body.theme-light 에서만 오버라이드
+   =========================== */
+
+body.theme-light {
+  /* 컬러 토큰(라이트) */
+  --bg: #f7f8fb;
+  --panel: #ffffff;
+  --muted: #667085;       /* 보조 텍스트 */
+  --text: #111827;        /* 본문 텍스트 */
+  --accent: #ff5a5f;      /* 포인트/프라이머리 (CatchTable 계열 코랄) */
+  --accent-2: #16a34a;    /* 성공 */
+  --danger: #ef4444;      /* 위험/삭제 */
+  --warning: #f59e0b;     /* 경고 */
+  --card: #ffffff;
+  --card-strong: #ffffff;
+  --border-color: #e5e7eb;
+  --shadow-1: 0 4px 16px rgba(17, 24, 39, 0.08);
+  --shadow-2: 0 16px 40px rgba(17, 24, 39, 0.12);
+  --radius: 14px;
+
+  /* 배경/폰트 */
+  background:
+    radial-gradient(1100px 800px at 90% -10%, rgba(255, 90, 95, 0.08), transparent 45%),
+    radial-gradient(900px 700px at -10% 0%, rgba(20, 184, 166, 0.06), transparent 45%),
+    linear-gradient(#f9fafb, #f7f8fb);
+  color: var(--text);
+  font-smooth: always;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 컨테이너/카드: 라이트 톤 보정 */
+body.theme-light .container { max-width: 1120px; padding: 24px; }
+body.theme-light .card {
+  background: var(--card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+}
+body.theme-light .card:hover {
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+
+/* 버튼: 프라이머리/고스트/디스트럭티브 */
+body.theme-light .btn {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: all .18s ease;
+}
+body.theme-light .btn:hover { box-shadow: var(--shadow-1); transform: translateY(-1px); }
+body.theme-light .btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+body.theme-light .btn-primary:hover { filter: brightness(1.05); }
+body.theme-light .btn-danger {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+body.theme-light .btn:disabled { opacity: .6; transform: none; }
+
+/* 즐겨찾기 토글(코랄 톤) */
+body.theme-light .fav-on {
+  background: #fff1f2;
+  border-color: #ffe4e6;
+  color: #e11d48;
+}
+body.theme-light .fav-off {
+  background: #ffffff;
+  border-color: var(--border-color);
+  color: #6b7280;
+}
+
+/* 배지/칩 */
+body.theme-light .badge {
+  background: #f9fafb;
+  border: 1px solid var(--border-color);
+  color: #4b5563;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+/* 텍스트 유틸 */
+body.theme-light .text-muted { color: var(--muted); }
+
+/* 그리드 여백 조정 */
+body.theme-light .grid { gap: 18px; }
+body.theme-light .grid-2 { grid-template-columns: 1.2fr 1fr; }
+@media (max-width: 980px) {
+  body.theme-light .grid-2 { grid-template-columns: 1fr; }
+}
+
+/* 인풋/셀렉트/텍스트에어리어 */
+body.theme-light .input, body.theme-light .textarea, body.theme-light select {
+  background: #ffffff;
+  color: var(--text);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
+  outline: none;
+}
+body.theme-light .input:focus, body.theme-light .textarea:focus, body.theme-light select:focus {
+  border-color: #ffd1d3;
+  box-shadow: 0 0 0 3px rgba(255,90,95,.18);
+}
+
+/* 링크 스타일 */
+body.theme-light a, body.theme-light .link { color: var(--accent); text-decoration: none; }
+body.theme-light .link:hover { text-decoration: underline; }
+
+/* 타이틀/서브 */
+body.theme-light .h2 { font-size: 22px; font-weight: 800; margin: 0; color: #0f172a; }
+body.theme-light .sub { color: var(--muted); }
+
+/* 지도 영역 베이스 */
+body.theme-light .map-box { background: #eef2ff; border: 1px solid #e5e7eb; }

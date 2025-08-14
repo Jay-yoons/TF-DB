@@ -16,6 +16,7 @@ import lombok.*;
 public class ReviewRequestDto {
     private Long reviewId;
     private String storeId;
+    private String storeName;
     private String userId;
     private String comment;
     private Integer score;

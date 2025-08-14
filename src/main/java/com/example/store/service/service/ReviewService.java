@@ -23,7 +23,8 @@ import java.util.Objects;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-
+// [추가] 스토어 조회용 리포지토리 주입 (storeId -> storeName 조회에 사용)
+private final com.example.store.service.repository.StoreRepository storeRepository;
     /**
      * 특정 가게의 모든 리뷰 목록 반환.
      */
@@ -66,6 +67,9 @@ public class ReviewService {
      */
     public ReviewDto createReview(ReviewRequestDto dto) {
         validateScore(dto.getScore());
+// [추가 - A] storeId로 매장 조회하여 최신 매장명 확보 (클라이언트 입력값은 신뢰하지 않음)
+com.example.store.service.entity.Store store = storeRepository.findById(dto.getStoreId())
+        .orElseThrow(() -> new NotFoundException("존재하지 않는 매장입니다."));
         if (reviewRepository.findByStoreIdAndUserId(dto.getStoreId(), dto.getUserId()).isPresent()) {
             throw new BadRequestException("이미 작성한 리뷰입니다.");
         }
@@ -75,6 +79,8 @@ public class ReviewService {
                 .comment(dto.getComment())
                 .score(dto.getScore())
                 .build();
+// [추가 - B] REVIEW 비정규화 컬럼(STORE_NAME) 세팅
+review.setStoreName(store.getStoreName());
         return ReviewDto.fromEntity(reviewRepository.save(review));
     }
 

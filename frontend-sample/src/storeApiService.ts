@@ -179,3 +179,35 @@ export function isOpenNowKST(serviceTime: string): boolean {
 export function openStatusKST(serviceTime: string): '영업중' | '영업종료' {
   return isOpenNowKST(serviceTime) ? '영업중' : '영업종료'
 }
+// [추가 - 타입] 즐겨찾기 항목(백엔드 FavStore와 1:1)
+export type FavoriteItem = { favStoreId: number; storeId: string; storeName: string; userId: string }
+
+// [추가 - API] 즐겨찾기 추가
+export async function addFavorite(userId: string, storeId: string): Promise<void> {
+  // [주의] 인증 연동 전이므로 userId를 파라미터로 전달
+  const res = await fetch(`${API}/api/favorites?userId=${encodeURIComponent(userId)}&storeId=${encodeURIComponent(storeId)}`, {
+    method: 'POST'
+  })
+  if (!res.ok) {
+    const msg = await res.text().catch(() => '')
+    throw new Error(`addFavorite failed: ${res.status} ${msg}`)
+  }
+}
+
+// [추가 - API] 즐겨찾기 제거
+export async function removeFavorite(userId: string, storeId: string): Promise<void> {
+  const res = await fetch(`${API}/api/favorites?userId=${encodeURIComponent(userId)}&storeId=${encodeURIComponent(storeId)}`, {
+    method: 'DELETE'
+  })
+  if (!res.ok) {
+    const msg = await res.text().catch(() => '')
+    throw new Error(`removeFavorite failed: ${res.status} ${msg}`)
+  }
+}
+
+// [추가 - API] 내 즐겨찾기 목록
+export async function getMyFavorites(userId: string): Promise<FavoriteItem[]> {
+  const res = await fetch(`${API}/api/favorites/me?userId=${encodeURIComponent(userId)}`)
+  if (!res.ok) throw new Error('getMyFavorites failed: ' + res.status)
+  return res.json()
+}
