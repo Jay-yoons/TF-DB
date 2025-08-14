@@ -1,4 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
+// 'useUserStore'를 여기서 직접 import 하는 것은 유지합니다.
+import { useUserStore } from '@/stores/userStore';
+
 import HomePage from '../views/HomePage.vue';
 import BookingList from '../views/BookingList.vue';
 import BookingDetail from '../views/BookingDetail.vue';
@@ -11,7 +14,8 @@ import ReviewDetail from '../views/ReviewDetail.vue';
 import Login from '../views/LoginPage.vue';
 import SignUp from '../views/SignUp.vue';
 import ReviewCreate from '../views/ReviewCreate.vue';
-import CallbackPage from '../views/CallbackPage.vue'
+import CallbackPage from '../views/CallbackPage.vue';
+import MyPage from '../views/MyPage.vue';
 
 const routes = [
   {
@@ -25,7 +29,7 @@ const routes = [
     component: BookingList
   },
   {
-    path: '/bookings/:bookingNum', // 예약 번호를 파라미터로 받는 동적 라우트
+    path: '/bookings/:bookingNum',
     name: 'BookingDetail',
     component: BookingDetail
   },
@@ -40,7 +44,7 @@ const routes = [
     component: StoreList,
   },
   {
-    path: '/stores/:storeId', // 가게 상세 정보 페이지 라우트 추가
+    path: '/stores/:storeId',
     name: 'StoreDetail',
     component: StoreDetail
   },
@@ -59,32 +63,56 @@ const routes = [
     name: 'ReviewDetail',
     component: ReviewDetail,
   },
-  { 
-    path: '/login', 
-    name: 'Login', 
-    component: Login 
-  },
-  { 
-    path: '/signup', 
-    name: 'SignUp', 
-    component: SignUp 
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
   },
   {
-    path: '/reviews/new/:storeId/:bookingNum', // 리뷰 작성 페이지 경로
+    path: '/signup',
+    name: 'SignUp',
+    component: SignUp
+  },
+  {
+    path: '/reviews/new/:storeId/:bookingNum',
     name: 'ReviewCreate',
     component: ReviewCreate,
     props: true,
   },
-  { 
-    path: '/callback', 
-    name: 'Callback', 
-    component: CallbackPage 
+  {
+    path: '/callback',
+    name: 'Callback',
+    component: CallbackPage
   },
+  {
+    path: '/mypage',
+    name: 'MyPage',
+    component: MyPage,
+    meta: {
+      requiresAuth: true
+    }
+  }
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  // router.beforeEach는 'app.use(pinia)'가 실행되기 전에 호출될 수 있으므로,
+  // 여기서 'useUserStore()'를 직접 호출하면 오류가 발생합니다.
+  // 이 문제를 해결하기 위해 'router.isReady()'를 사용합니다.
+  if (router.isReady()) {
+    const userStore = useUserStore();
+    if (to.meta.requiresAuth && !userStore.isAuthenticated) {
+      next({ name: 'Login' });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;

@@ -15,4 +15,5 @@ public class BookingResponse {
     private String storeId;
     private String bookingState;
     private int count;
+    private String userId;
 }

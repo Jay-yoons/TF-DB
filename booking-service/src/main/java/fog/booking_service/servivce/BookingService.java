@@ -45,9 +45,17 @@ public class BookingService {
     }
 
     /*
-    예약 상세 조회
+    예약 상세 조회 - Booking
      */
-    public BookingResponse getBooking(Long bookingNum) {
+    public Booking getBooking(Long bookingNum) {
+        return bookingRepository.findById(bookingNum)
+                .orElseThrow(() -> new EntityNotFoundException("Booking is not found"));
+    }
+
+    /*
+    예약 상세 조회 - BookingResponse
+     */
+    public BookingResponse getBookingResponse(Long bookingNum) {
         log.info("예약 상세 조회");
         Booking booking = bookingRepository.findById(bookingNum)
                 .orElseThrow(() -> new EntityNotFoundException("Booking is not found"));
@@ -57,6 +65,7 @@ public class BookingService {
                 .storeId(booking.getStoreId())
                 .bookingState(booking.getBookingStateCode().getStateName())
                 .count(booking.getCount())
+                .userId(booking.getUserId())
                 .build();
     }
 
@@ -80,7 +89,7 @@ public class BookingService {
                 .stateCode(stateCode)
                 .build();
         Long bookingNum = bookingRepository.save(booking).getBookingNum();
-        return getBooking(bookingNum);
+        return getBookingResponse(bookingNum);
     }
 
     /*

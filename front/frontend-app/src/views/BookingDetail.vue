@@ -28,62 +28,67 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'BookingDetail',
-  data() {
-    return {
-      booking: null,
-    };
-  },
-  created() {
-    this.fetchBookingDetail(this.$route.params.bookingNum);
-  },
-  methods: {
-    fetchBookingDetail(bookingNum) {
-      const accessToken = localStorage.getItem('accessToken');
-      const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
 
-      this.$axios.get(`/api/bookings/${bookingNum}`, { headers })
-        .then(response => {
-          this.booking = response.data;
-        })
-        .catch(error => {
-          console.error('예약 상세 정보를 가져오는 데 실패했습니다.', error);
-        });
-    },
-    async cancelBooking() {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        alert('예약을 취소하려면 로그인이 필요합니다.');
-        return;
-      }
-      const headers = { Authorization: `Bearer ${accessToken}` };
-      
-      try {
-        const cancelBookingResponse = await this.$axios.patch(
-          `/api/bookings/${this.booking.bookingNum}`,
-          null,
-          { headers }
-        );
-        console.log('예약 취소 성공:', cancelBookingResponse.data);
+const booking = ref(null);
+const route = useRoute();
 
-        const decrementSeatResponse = await this.$axios.post(
-          `/api/stores/${this.booking.storeId}/seats/decrement?count=${this.booking.count}`,
-          null,
-          { headers }
-        );
-        console.log('좌석 감소 성공:', decrementSeatResponse.data);
+// 예약 상세 정보를 가져오는 함수
+const fetchBookingDetail = async (bookingNum) => {
+  const accessToken = localStorage.getItem('accessToken');
+  const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
 
-        alert('예약이 성공적으로 취소되었습니다');
-        this.fetchBookingDetail(this.booking.bookingNum);
-      } catch (error) {
-        console.error('예약 취소 작업 실패:', error);
-        alert(`예약 취소에 실패했습니다: ${error.message}`);
-      }
-    },
-  },
+  try {
+    const response = await axios.get(`/api/bookings/${bookingNum}`, { headers });
+    booking.value = response.data;
+  } catch (error) {
+    console.error('예약 상세 정보를 가져오는 데 실패했습니다.', error);
+  }
 };
+
+// 예약 취소 함수
+const cancelBooking = async () => {
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    alert('예약을 취소하려면 로그인이 필요합니다.');
+    return;
+  }
+  const headers = { Authorization: `Bearer ${accessToken}` };
+  
+  try {
+    // 1. 예약 취소 API 호출
+    const cancelBookingResponse = await axios.patch(
+      `/api/bookings/${booking.value.bookingNum}`,
+      null,
+      { headers }
+    );
+    console.log('예약 취소 성공:', cancelBookingResponse.data);
+
+    // 2. 좌석 수 감소 API 호출
+    const decrementSeatResponse = await axios.post(
+      `/api/stores/${booking.value.storeId}/seats/decrement?count=${booking.value.count}`,
+      null,
+      { headers }
+    );
+    console.log('좌석 감소 성공:', decrementSeatResponse.data);
+
+    alert('예약이 성공적으로 취소되었습니다');
+
+    // 3. 취소 후 예약 정보 다시 불러오기
+    fetchBookingDetail(booking.value.bookingNum);
+  } catch (error) {
+    console.error('예약 취소 작업 실패:', error);
+    alert(`예약 취소에 실패했습니다: ${error.message}`);
+  }
+};
+
+// 컴포넌트가 마운트될 때 예약 정보 가져오기
+onMounted(() => {
+  fetchBookingDetail(route.params.bookingNum);
+});
 </script>
 
 <style scoped>

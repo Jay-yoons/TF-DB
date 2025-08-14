@@ -1,7 +1,5 @@
 <template>
-  <div class="p-8">
-    <h1 class="text-2xl font-bold mb-4">마이페이지</h1>
-    
+  <div class="my-page">
     <div v-if="userStore.loading" class="text-blue-500">
       데이터 불러오는 중...
     </div>
@@ -10,25 +8,25 @@
     </div>
 
     <div v-if="userStore.isAuthenticated">
-      <!-- 내 정보 섹션 -->
       <section class="mb-8">
         <h2 class="text-xl font-semibold mb-2">내 정보</h2>
         <div v-if="userStore.user" class="border p-4 rounded-lg bg-white shadow">
-          <p>이름: {{ userStore.user.name }}</p>
-          <p>이메일: {{ userStore.user.email }}</p>
-          <p>전화번호: {{ userStore.user.phone }}</p>
+          <p>이름: {{ userStore.user.userName }}</p>
+          <p>전화번호: {{ userStore.user.phoneNumber }}</p>
+          <p>위치: {{ userStore.user.userLocation }}</p>
         </div>
         <div v-else class="text-gray-500">
           내 정보를 불러오는 중입니다.
         </div>
       </section>
 
-      <!-- 즐겨찾기 섹션 -->
       <section>
         <h2 class="text-xl font-semibold mb-2">즐겨찾기 가게 목록 ({{ userStore.favoriteCount }})</h2>
         <div v-if="userStore.favorites.length" class="space-y-4">
-          <div v-for="favorite in userStore.favorites" :key="favorite.id" class="flex justify-between items-center p-4 border rounded-lg bg-white shadow">
-            <p>{{ favorite.storeName }}</p>
+          <div v-for="favorite in userStore.favorites" :key="favorite.favStoreId" class="flex justify-between items-center p-4 border rounded-lg bg-white shadow">
+            <router-link :to="{ name: 'StoreDetail', params: { storeId: favorite.storeId } }" class="text-blue-500 hover:underline">
+              {{ favorite.storeName }}
+            </router-link>
             <button @click="userStore.removeFavorite(favorite.storeId)" class="text-red-500 hover:text-red-700">
               삭제
             </button>
@@ -52,9 +50,18 @@ import { useUserStore } from '@/stores/userStore';
 const userStore = useUserStore();
 
 onMounted(async () => {
-  // 컴포넌트가 마운트될 때 데이터 불러오기
   await userStore.fetchMyInfo();
   await userStore.fetchFavorites();
   await userStore.fetchFavoriteCount();
 });
 </script>
+
+<style scoped>
+/* 필요한 스타일 추가 */
+.text-blue-500 {
+  color: #3b82f6;
+}
+.hover\:underline:hover {
+  text-decoration: underline;
+}
+</style>

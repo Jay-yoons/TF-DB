@@ -9,48 +9,40 @@
 <script>
 import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import { useUserStore } from '@/stores/userStore'; // userStore import
 
 export default {
     name: 'CallbackPage',
     setup() {
         const route = useRoute();
         const router = useRouter();
+        const userStore = useUserStore(); // userStore 사용
 
         const handleCallback = async () => {
+            const code = route.query.code;
+            const state = route.query.state;
+
+            if (!code || !state) {
+                console.error('인증 코드 또는 상태 값이 없습니다.');
+                alert('로그인 실패: 인증 코드 또는 상태 값이 누락되었습니다.');
+                router.push('/');
+                return;
+            }
+
             try {
-                const code = route.query.code;
-                const state = route.query.state;
+                // userStore의 handleCognitoCallback 액션 호출
+                await userStore.handleCognitoCallback(code, state);
 
-                if (!code || !state) {
-                    throw new Error('인증 코드 또는 상태 값이 없습니다.');
-                }
-
-                // 백엔드의 콜백 API 호출
-                const response = await axios.post('/api/users/login/callback', {
-                    code: code,
-                    state: state,
-                });
-
-                const { accessToken, idToken, refreshToken } = response.data;
-
-                if (accessToken && idToken) {
-                    localStorage.setItem('accessToken', accessToken);
-                    localStorage.setItem('idToken', idToken);
-                    if (refreshToken) {
-                        localStorage.setItem('refreshToken', refreshToken);
-                    }
-
+                if (userStore.isAuthenticated) {
                     alert('로그인이 완료되었습니다!');
                     router.push('/');
                 } else {
-                    throw new Error('토큰을 받지 못했습니다.');
+                    throw new Error('로그인에 실패했습니다.');
                 }
-
             } catch (error) {
                 console.error('로그인 콜백 처리 실패:', error);
                 alert(`로그인 실패: ${error.message}`);
-                router.push('/login'); // 오류 발생 시 로그인 페이지로 이동
+                router.push('/');
             }
         };
 
