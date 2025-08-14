@@ -12,10 +12,11 @@ import java.util.Optional;
 /**
  * 사용자 즐겨찾기 가게 Repository
  * 
- * 사용자의 즐겨찾기 가게 정보를 데이터베이스에서 조회, 저장, 수정, 삭제하는 기능을 제공합니다.
+ * 사용자의 즐겨찾기 가게 정보를 데이터베이스에서 조회, 저장, 수정하는 기능을 제공합니다.
+ * DB 담당 팀원 피드백에 따라 MSA 원칙을 준수하여 수정되었습니다.
  * 
  * @author FOG Team
- * @version 1.0
+ * @version 2.0
  * @since 2024-01-15
  */
 @Repository
@@ -61,63 +62,47 @@ public interface FavoriteStoreRepository extends JpaRepository<FavoriteStore, Lo
      */
     void deleteByUserId(String userId);
     
-    /**
-     * 특정 가게의 모든 즐겨찾기 삭제 (가게가 삭제될 때 사용)
-     * 
-     * @param storeId 가게 ID
-     */
-    void deleteByStoreId(String storeId);
-    
-    /**
-     * 사용자 ID로 즐겨찾기한 가게 ID 목록만 조회
-     * 
-     * @param userId 사용자 ID
-     * @return 즐겨찾기한 가게 ID 목록
-     */
-    @Query("SELECT fs.storeId FROM FavoriteStore fs WHERE fs.userId = :userId")
-    List<String> findStoreIdsByUserId(@Param("userId") String userId);
-    
     // =============================================================================
     // 뷰를 사용한 조회 메서드들 (DB 담당자와 협의 후 추가)
     // =============================================================================
     
     /**
-     * 뷰를 사용하여 사용자의 즐겨찾기 가게 상세 정보 조회
-     * V_USER_FAVORITE_STORES 뷰 사용
+     * 사용자의 즐겨찾기 가게 상세 정보 조회 (STORE_NAME 컬럼 사용)
+     * DB 담당자 피드백: STORE_NAME 컬럼이 추가되어 JOIN 불필요
      * 
      * @param userId 사용자 ID
-     * @return 즐겨찾기 가게 상세 정보 목록
+     * @return 즐겨찾기 가게 상세 정보 목록 [STORE_ID, STORE_NAME, CREATED_AT]
      */
-    @Query(value = "SELECT * FROM V_USER_FAVORITE_STORES WHERE USER_ID = :userId ORDER BY FAVORITE_CREATED_AT DESC", nativeQuery = true)
+    @Query(value = "SELECT STORE_ID, STORE_NAME, CREATED_AT FROM FAV_STORE WHERE USER_ID = :userId ORDER BY CREATED_AT DESC", nativeQuery = true)
     List<Object[]> findFavoriteStoresWithDetails(@Param("userId") String userId);
     
     /**
-     * 뷰를 사용하여 사용자의 리뷰 상세 정보 조회
-     * V_USER_REVIEWS 뷰 사용
+     * 사용자의 리뷰 상세 정보 조회 (필요한 컬럼만 조회)
+     * DB 담당자 피드백: REVIEW_ID, USER_ID, STORE_ID는 불필요
      * 
      * @param userId 사용자 ID
-     * @return 사용자 리뷰 상세 정보 목록
+     * @return 사용자 리뷰 상세 정보 목록 [STORE_NAME, COMMENT, CREATED_AT]
      */
-    @Query(value = "SELECT * FROM V_USER_REVIEWS WHERE USER_ID = :userId ORDER BY REVIEW_ID DESC", nativeQuery = true)
+    @Query(value = "SELECT STORE_NAME, COMMENT, CREATED_AT FROM V_USER_REVIEWS WHERE USER_ID = :userId ORDER BY REVIEW_ID DESC", nativeQuery = true)
     List<Object[]> findUserReviewsWithDetails(@Param("userId") String userId);
     
     /**
-     * 뷰를 사용하여 사용자의 예약 현황 조회
-     * V_USER_BOOKINGS 뷰 사용
+     * 사용자의 예약 현황 조회 (뷰 생성 후 사용)
+     * DB 담당자 피드백: V_USER_BOOKINGS 뷰 생성 필요
      * 
      * @param userId 사용자 ID
-     * @return 사용자 예약 현황 목록
+     * @return 사용자 예약 현황 목록 [STORE_NAME, BOOKING_DATE, BOOKING_STATE_NAME]
      */
-    @Query(value = "SELECT * FROM V_USER_BOOKINGS WHERE USER_ID = :userId ORDER BY BOOKING_DATE DESC", nativeQuery = true)
+    @Query(value = "SELECT STORE_NAME, BOOKING_DATE, BOOKING_STATE_NAME FROM V_USER_BOOKINGS WHERE USER_ID = :userId ORDER BY BOOKING_DATE DESC", nativeQuery = true)
     List<Object[]> findUserBookingsWithDetails(@Param("userId") String userId);
     
     /**
-     * 뷰를 사용하여 사용자 대시보드 통계 조회
-     * V_USER_DASHBOARD 뷰 사용
+     * 사용자 대시보드 통계 조회 (뷰 생성 후 사용)
+     * DB 담당자 피드백: V_USER_DASHBOARD 뷰 생성 필요
      * 
      * @param userId 사용자 ID
-     * @return 사용자 대시보드 통계 정보
+     * @return 사용자 대시보드 통계 정보 [TOTAL_FAVORITES, TOTAL_REVIEWS, TOTAL_BOOKINGS]
      */
-    @Query(value = "SELECT * FROM V_USER_DASHBOARD WHERE USER_ID = :userId", nativeQuery = true)
+    @Query(value = "SELECT TOTAL_FAVORITES, TOTAL_REVIEWS, TOTAL_BOOKINGS FROM V_USER_DASHBOARD WHERE USER_ID = :userId", nativeQuery = true)
     Object[] findUserDashboardStats(@Param("userId") String userId);
 }

@@ -69,31 +69,27 @@ public class UserController {
     }
     
     /**
-     * 내 정보 조회 (JWT 기반)
+     * 통합 마이페이지 조회
+     * 사용자 정보 + 통계 + 최근 활동을 한번에 제공
+     * 기존 대시보드 기능을 마이페이지에 통합
      */
     @GetMapping("/me")
-    public ResponseEntity<UserInfoDto> getMyInfo() {
+    public ResponseEntity<Map<String, Object>> getMyPage() {
         try {
-            logger.info("내 정보 조회 요청");
-            
-            // Spring Security 컨텍스트에서 현재 인증된 사용자 정보 가져오기
             String userId = getCurrentUserId();
             if (userId == null) {
-                logger.warn("로그인이 필요합니다");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
             
-            User user = userService.getUserInfo(userId);
-            UserInfoDto userInfo = new UserInfoDto(
-                user.getUserId(), user.getUserName(), user.getPhoneNumber(), 
-                user.getUserLocation(), user.isActive(), user.getCreatedAt(), user.getUpdatedAt()
-            );
+            logger.info("통합 마이페이지 조회 요청: userId={}", userId);
             
-            logger.info("내 정보 조회 완료: userId={}", userId);
-            return ResponseEntity.ok(userInfo);
+            Map<String, Object> myPage = userService.getMyPage(userId);
+            
+            logger.info("통합 마이페이지 조회 완료: userId={}", userId);
+            return ResponseEntity.ok(myPage);
             
         } catch (Exception e) {
-            logger.error("내 정보 조회 중 오류 발생", e);
+            logger.error("통합 마이페이지 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -334,41 +330,6 @@ public class UserController {
         response.put("status", "UP");
         response.put("timestamp", System.currentTimeMillis());
         return ResponseEntity.ok(response);
-    }
-    
-    /**
-     * 대시보드 통계 데이터 조회
-     * 프론트엔드 HomePage에서 사용
-     */
-    @GetMapping("/dashboard/counts")
-    public ResponseEntity<Map<String, Object>> getDashboardCounts() {
-        try {
-            logger.info("대시보드 통계 데이터 조회 요청");
-            
-            Map<String, Object> response = new HashMap<>();
-            
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 통계 데이터 반환
-                response.put("stores", 15);
-                response.put("members", 250);
-                response.put("bookings", 89);
-                logger.info("더미 모드 대시보드 통계 조회 완료");
-            } else {
-                // 실제 데이터베이스에서 통계 조회
-                long userCount = userService.getUserCount();
-                // TODO: Store Service와 Reservation Service에서 데이터 가져오기
-                response.put("stores", 0);  // Store Service 연동 필요
-                response.put("members", userCount);
-                response.put("bookings", 0); // Reservation Service 연동 필요
-                logger.info("대시보드 통계 조회 완료: users={}", userCount);
-            }
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("대시보드 통계 조회 중 오류 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
     }
     
     /**
@@ -678,9 +639,11 @@ public class UserController {
     }
 
     /**
-     * 내 즐겨찾기 가게 개수 조회
+     * 내 즐겨찾기 가게 개수 조회 (기존 API - 통합 마이페이지로 대체됨)
+     * @deprecated 통합 마이페이지 API 사용 권장
      */
     @GetMapping("/me/favorites/count")
+    @Deprecated
     public ResponseEntity<Map<String, Object>> getMyFavoriteStoreCount() {
         try {
             String userId = getCurrentUserId();
@@ -713,10 +676,11 @@ public class UserController {
     }
 
     /**
-     * 뷰를 사용한 내 리뷰 상세 정보 조회 (개선된 방식)
-     * DB 담당자와 협의 후 사용
+     * 뷰를 사용한 내 리뷰 상세 정보 조회 (기존 API - 통합 마이페이지로 대체됨)
+     * @deprecated 통합 마이페이지 API 사용 권장
      */
     @GetMapping("/me/reviews/details")
+    @Deprecated
     public ResponseEntity<List<Map<String, Object>>> getMyReviewsWithDetails() {
         try {
             String userId = getCurrentUserId();
@@ -734,10 +698,11 @@ public class UserController {
     }
 
     /**
-     * 뷰를 사용한 내 예약 현황 조회 (개선된 방식)
-     * DB 담당자와 협의 후 사용
+     * 뷰를 사용한 내 예약 현황 조회 (기존 API - 통합 마이페이지로 대체됨)
+     * @deprecated 통합 마이페이지 API 사용 권장
      */
     @GetMapping("/me/bookings/details")
+    @Deprecated
     public ResponseEntity<List<Map<String, Object>>> getMyBookingsWithDetails() {
         try {
             String userId = getCurrentUserId();
@@ -755,10 +720,11 @@ public class UserController {
     }
 
     /**
-     * 뷰를 사용한 내 대시보드 통계 조회 (개선된 방식)
-     * DB 담당자와 협의 후 사용
+     * 뷰를 사용한 내 대시보드 통계 조회 (기존 API - 통합 마이페이지로 대체됨)
+     * @deprecated 통합 마이페이지 API 사용 권장
      */
     @GetMapping("/me/dashboard/stats")
+    @Deprecated
     public ResponseEntity<Map<String, Object>> getMyDashboardStats() {
         try {
             String userId = getCurrentUserId();

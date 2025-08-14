@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  * 사용자 서비스 클래스
@@ -520,5 +521,181 @@ public class UserService {
             default:
                 return "알 수 없는 가게";
         }
+    }
+
+    /**
+     * 통합 마이페이지 정보 조회
+     * 사용자 정보 + 통계 + 최근 활동을 한번에 제공
+     * 기존 대시보드 기능을 마이페이지에 통합
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getMyPage(String userId) {
+        logger.info("통합 마이페이지 정보 조회: userId={}", userId);
+        
+        Map<String, Object> myPage = new HashMap<>();
+        
+        try {
+            // 1. 사용자 기본 정보
+            User user = userRepository.findById(userId).orElse(null);
+            Map<String, Object> userInfo = new HashMap<>();
+            if (user != null) {
+                userInfo.put("userId", user.getUserId());
+                userInfo.put("userName", user.getUserName());
+                userInfo.put("phoneNumber", user.getPhoneNumber());
+                userInfo.put("userLocation", user.getUserLocation());
+                userInfo.put("isActive", user.isActive());
+                userInfo.put("createdAt", user.getCreatedAt());
+                userInfo.put("updatedAt", user.getUpdatedAt());
+            }
+            myPage.put("userInfo", userInfo);
+            
+            // 2. 통계 정보
+            Map<String, Object> statistics = new HashMap<>();
+            statistics.put("favoriteCount", favoriteStoreRepository.countByUserId(userId));
+            statistics.put("reviewCount", getUserReviewCount(userId));
+            statistics.put("totalBookingCount", getUserBookingCount(userId));
+            statistics.put("activeBookingCount", getActiveBookingCount(userId));
+            myPage.put("statistics", statistics);
+            
+            // 3. 최근 활동 (최근 5개씩)
+            Map<String, Object> recentActivities = new HashMap<>();
+            recentActivities.put("favorites", getRecentFavorites(userId, 5));
+            recentActivities.put("reviews", getRecentReviews(userId, 5));
+            recentActivities.put("bookings", getRecentBookings(userId, 5));
+            myPage.put("recentActivities", recentActivities);
+            
+            logger.info("통합 마이페이지 정보 조회 완료: userId={}", userId);
+            return myPage;
+            
+        } catch (Exception e) {
+            logger.error("통합 마이페이지 정보 조회 중 오류 발생: userId={}, error={}", userId, e.getMessage());
+            // 오류 발생 시 기본 정보만 반환
+            return getMyPageFallback(userId);
+        }
+    }
+    
+    /**
+     * 최근 즐겨찾기 조회
+     */
+    private List<Map<String, Object>> getRecentFavorites(String userId, int limit) {
+        List<FavoriteStore> favorites = favoriteStoreRepository.findByUserId(userId);
+        return favorites.stream()
+            .limit(limit)
+            .map(fs -> {
+                Map<String, Object> fav = new HashMap<>();
+                fav.put("storeId", fs.getStoreId());
+                fav.put("storeName", fs.getStoreName() != null ? fs.getStoreName() : getDummyStoreName(fs.getStoreId()));
+                fav.put("createdAt", fs.getCreatedAt());
+                return fav;
+            })
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * 최근 리뷰 조회
+     */
+    private List<Map<String, Object>> getRecentReviews(String userId, int limit) {
+        // Store Service Integration을 사용하여 리뷰 조회
+        try {
+            // 현재는 빈 리스트 반환 (Store Service 연동 후 구현)
+            return new ArrayList<>();
+        } catch (Exception e) {
+            logger.error("최근 리뷰 조회 실패: userId={}, error={}", userId, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 최근 예약 조회
+     */
+    private List<Map<String, Object>> getRecentBookings(String userId, int limit) {
+        // Reservation Service Integration을 사용하여 예약 조회
+        try {
+            // 현재는 빈 리스트 반환 (Reservation Service 연동 후 구현)
+            return new ArrayList<>();
+        } catch (Exception e) {
+            logger.error("최근 예약 조회 실패: userId={}, error={}", userId, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 사용자 리뷰 개수 조회
+     */
+    private int getUserReviewCount(String userId) {
+        // Store Service Integration을 사용하여 리뷰 개수 조회
+        try {
+            // 현재는 0 반환 (Store Service 연동 후 구현)
+            return 0;
+        } catch (Exception e) {
+            logger.error("리뷰 개수 조회 실패: userId={}, error={}", userId, e.getMessage());
+            return 0;
+        }
+    }
+    
+    /**
+     * 사용자 예약 개수 조회
+     */
+    private int getUserBookingCount(String userId) {
+        // Reservation Service Integration을 사용하여 예약 개수 조회
+        try {
+            // 현재는 0 반환 (Reservation Service 연동 후 구현)
+            return 0;
+        } catch (Exception e) {
+            logger.error("예약 개수 조회 실패: userId={}, error={}", userId, e.getMessage());
+            return 0;
+        }
+    }
+    
+    /**
+     * 활성 예약 개수 조회
+     */
+    private int getActiveBookingCount(String userId) {
+        // Reservation Service Integration을 사용하여 활성 예약 개수 조회
+        try {
+            // 현재는 0 반환 (Reservation Service 연동 후 구현)
+            return 0;
+        } catch (Exception e) {
+            logger.error("활성 예약 개수 조회 실패: userId={}, error={}", userId, e.getMessage());
+            return 0;
+        }
+    }
+    
+    /**
+     * 통합 마이페이지 fallback (기본 정보만 반환)
+     */
+    private Map<String, Object> getMyPageFallback(String userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        Map<String, Object> myPage = new HashMap<>();
+        
+        // 사용자 기본 정보
+        Map<String, Object> userInfo = new HashMap<>();
+        if (user != null) {
+            userInfo.put("userId", user.getUserId());
+            userInfo.put("userName", user.getUserName());
+            userInfo.put("phoneNumber", user.getPhoneNumber());
+            userInfo.put("userLocation", user.getUserLocation());
+            userInfo.put("isActive", user.isActive());
+            userInfo.put("createdAt", user.getCreatedAt());
+            userInfo.put("updatedAt", user.getUpdatedAt());
+        }
+        myPage.put("userInfo", userInfo);
+        
+        // 기본 통계 정보
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("favoriteCount", favoriteStoreRepository.countByUserId(userId));
+        statistics.put("reviewCount", 0);
+        statistics.put("totalBookingCount", 0);
+        statistics.put("activeBookingCount", 0);
+        myPage.put("statistics", statistics);
+        
+        // 빈 최근 활동
+        Map<String, Object> recentActivities = new HashMap<>();
+        recentActivities.put("favorites", new ArrayList<>());
+        recentActivities.put("reviews", new ArrayList<>());
+        recentActivities.put("bookings", new ArrayList<>());
+        myPage.put("recentActivities", recentActivities);
+        
+        return myPage;
     }
 }

@@ -56,6 +56,13 @@ public class FavoriteStore {
     private String storeId;
     
     /**
+     * 가게 이름 (DB 담당자가 추가한 컬럼)
+     * 최대 100자까지 저장 가능
+     */
+    @Column(name = "STORE_NAME", length = 100)
+    private String storeName;
+    
+    /**
      * 생성일시
      * 자동 생성되며 수정 불가
      */
@@ -69,6 +76,12 @@ public class FavoriteStore {
     public FavoriteStore(String userId, String storeId) {
         this.userId = userId;
         this.storeId = storeId;
+    }
+    
+    public FavoriteStore(String userId, String storeId, String storeName) {
+        this.userId = userId;
+        this.storeId = storeId;
+        this.storeName = storeName;
     }
     
     // Getters and Setters
@@ -94,6 +107,14 @@ public class FavoriteStore {
     
     public void setStoreId(String storeId) {
         this.storeId = storeId;
+    }
+    
+    public String getStoreName() {
+        return storeName;
+    }
+    
+    public void setStoreName(String storeName) {
+        this.storeName = storeName;
     }
     
     public LocalDateTime getCreatedAt() {
