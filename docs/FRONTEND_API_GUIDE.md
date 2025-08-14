@@ -105,8 +105,8 @@ const response = await axios.get('/api/users/me', {
   "phoneNumber": "010-1234-5678",
   "userLocation": "서울시 강남구",
   "active": true,
-  "createdAt": "2024-01-15T10:00:00",
-  "updatedAt": "2024-01-15T10:00:00"
+  "createdAt": "2025-08-14T10:00:00",
+  "updatedAt": "2025-08-14T10:00:00"
 }
 ```
 
@@ -157,7 +157,7 @@ const response = await axios.get('/api/users/me/favorites', {
     "storeId": "store001",
     "storeName": "맛있는 한식당",
     "userId": "user123",
-    "createdAt": "2024-01-15T10:00:00"
+    "createdAt": "2025-08-14T10:00:00"
   }
 ]
 ```
@@ -236,8 +236,8 @@ const response = await axios.get('/api/users/me/reviews', {
     "userName": "홍길동",
     "content": "정말 맛있었어요!",
     "rating": 5,
-    "createdAt": "2024-01-15T10:00:00",
-    "updatedAt": "2024-01-15T10:00:00"
+    "createdAt": "2025-08-14T10:00:00",
+    "updatedAt": "2025-08-14T10:00:00"
   }
 ]
 ```
@@ -285,7 +285,7 @@ axios.interceptors.response.use(
   "success": false,
   "message": "에러 메시지",
   "errorCode": "ERROR_CODE",
-  "timestamp": "2024-01-15T10:00:00"
+  "timestamp": "2025-08-14T10:00:00"
 }
 ```
 

@@ -111,15 +111,30 @@ CREATE INDEX idx_queue_status ON BOOKING_QUEUE(QUEUE_STATUS);
 
 ### 시나리오 1: 특정 시간대 몰림
 ```sql
--- 예시: 2024-01-20 18:30 시간대에 100명이 동시 예약 시도
--- STORE_TIME_SLOT 테이블에서 해당 시간대 좌석 확인
-SELECT * FROM STORE_TIME_SLOT 
+-- 예시: 2025-08-14 18:30 시간대에 100명이 동시 예약 시도
+SELECT COUNT(*) FROM BOOKING_QUEUE 
 WHERE STORE_ID = 'store001' 
-  AND BOOKING_DATE = DATE '2024-01-20' 
-  AND TIME_SLOT = '18:30';
+AND BOOKING_DATE = DATE '2025-08-14'
+AND TIME_SLOT = '18:30';
 
--- 결과: MAX_CAPACITY = 50, CURRENT_BOOKINGS = 0
--- 100명 중 50명만 예약 가능, 나머지 50명은 대기열로
+-- 해당 시간대의 예약 가능 여부 확인
+SELECT 
+    CASE 
+        WHEN COUNT(*) < 50 THEN 'AVAILABLE'
+        ELSE 'FULL'
+    END AS STATUS
+FROM BOOKING_QUEUE 
+WHERE STORE_ID = 'store001' 
+AND BOOKING_DATE = DATE '2025-08-14'
+AND TIME_SLOT = '18:30';
+
+-- 해당 날짜의 전체 예약 현황
+SELECT TIME_SLOT, COUNT(*) as BOOKING_COUNT
+FROM BOOKING_QUEUE 
+WHERE STORE_ID = 'store001' 
+AND BOOKING_DATE BETWEEN DATE '2025-08-14' AND DATE '2025-08-15'
+GROUP BY TIME_SLOT
+ORDER BY TIME_SLOT;
 ```
 
 ### 시나리오 2: 인기 시간대 몰림
@@ -158,7 +173,7 @@ Authorization: Bearer {{accessToken}}
 {
   "userId": "user001",
   "storeId": "store001",
-  "bookingDate": "2024-01-20",
+  "bookingDate": "2025-08-14",
   "bookingTime": "18:30",
   "count": 4
 }
@@ -174,7 +189,7 @@ for i in {1..100}; do
     -d "{
       \"userId\": \"user$i\",
       \"storeId\": \"store001\",
-      \"bookingDate\": \"2024-01-20\",
+      \"bookingDate\": \"2025-08-14\",
       \"bookingTime\": \"18:30\",
       \"count\": 2
     }" &
@@ -185,7 +200,7 @@ wait
 ### 3. 대기열 처리 테스트
 ```http
 ### 대기열 상태 확인
-GET {{baseUrl}}/api/bookings/queue/store001/2024-01-20/18:30
+GET {{baseUrl}}/api/bookings/queue/store001/2025-08-14/18:30
 Authorization: Bearer {{accessToken}}
 
 ### 대기열에서 예약으로 전환
@@ -195,72 +210,12 @@ Authorization: Bearer {{accessToken}}
 
 {
   "storeId": "store001",
-  "bookingDate": "2024-01-20",
+  "bookingDate": "2025-08-14",
   "timeSlot": "18:30",
   "queuePosition": 1
 }
 ```
 
-## 🏗️ 인프라 해결책 (개선된 버전)
-
-### 1. 시간대별 자동 스케일링
-```json
-{
-  "scheduledActions": {
-    "lunchTimeScaling": {
-      "scheduledActionName": "lunch-time-scaling",
-      "schedule": "cron(0 11 * * ? *)",
-      "scalableTargetAction": {
-        "minCapacity": 3,
-        "maxCapacity": 15
-      }
-    },
-    "dinnerTimeScaling": {
-      "scheduledActionName": "dinner-time-scaling", 
-      "schedule": "cron(0 17 * * ? *)",
-      "scalableTargetAction": {
-        "minCapacity": 5,
-        "maxCapacity": 25
-      }
-    }
-  }
-}
-```
-
-### 2. 시간대별 캐싱 전략
-```java
-// Redis 캐시 키 구조
-String cacheKey = String.format("booking:store:%s:date:%s:time:%s", 
-    storeId, bookingDate, timeSlot);
-
-// 시간대별 예약 현황 캐싱
-@Cacheable(value = "bookingSlots", key = "#cacheKey")
-public TimeSlotAvailability getTimeSlotAvailability(String storeId, 
-                                                   LocalDate date, 
-                                                   String timeSlot) {
-    // 데이터베이스 조회
-}
-```
-
-### 3. 대기열 처리 시스템
-```java
-@Service
-public class BookingQueueService {
-    
-    @Async
-    public CompletableFuture<BookingResult> processQueue(String storeId, 
-                                                        LocalDate date, 
-                                                        String timeSlot) {
-        // 대기열에서 순서대로 예약 처리
-        // 좌석이 확보되면 자동으로 예약 완료
-    }
-}
-```
-
-## 📊 모니터링 지표 (개선된 버전)
-
-### 1. 시간대별 예약 현황
-```sql
 -- 시간대별 예약률
 SELECT TIME_SLOT, 
        ROUND(CURRENT_BOOKINGS / MAX_CAPACITY * 100, 2) as BOOKING_RATE,
@@ -269,12 +224,9 @@ SELECT TIME_SLOT,
        AVAILABLE_SEATS
 FROM STORE_TIME_SLOT 
 WHERE STORE_ID = 'store001' 
-  AND BOOKING_DATE = DATE '2024-01-20'
+  AND BOOKING_DATE = DATE '2025-08-14'
 ORDER BY TIME_SLOT;
-```
 
-### 2. 대기열 통계
-```sql
 -- 시간대별 대기열 현황
 SELECT TIME_SLOT,
        COUNT(*) as QUEUE_LENGTH,
@@ -282,24 +234,7 @@ SELECT TIME_SLOT,
        MAX(QUEUE_POSITION) as MAX_WAIT_POSITION
 FROM BOOKING_QUEUE 
 WHERE STORE_ID = 'store001' 
-  AND BOOKING_DATE = DATE '2024-01-20'
+  AND BOOKING_DATE = DATE '2025-08-14'
   AND QUEUE_STATUS = 'WAITING'
 GROUP BY TIME_SLOT
 ORDER BY TIME_SLOT;
-```
-
-## 🎯 결론
-
-### 기존 스키마의 한계
-- ❌ 시간대별 예약 관리 불가능
-- ❌ 실제 레스토랑 운영과 맞지 않음
-- ❌ 예약 몰림 상황 시뮬레이션 어려움
-
-### 개선된 스키마의 장점
-- ✅ 시간대별 세밀한 예약 관리
-- ✅ 실제 레스토랑 운영과 일치
-- ✅ 다양한 몰림 시나리오 테스트 가능
-- ✅ 대기열 시스템으로 사용자 경험 개선
-- ✅ 시간대별 자동 스케일링 가능
-
-이제 **특정 시간대에 인원이 몰리는 상황**을 정확하게 시뮬레이션하고 테스트할 수 있습니다! 🚀

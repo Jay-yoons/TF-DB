@@ -197,8 +197,8 @@ curl -H "Authorization: Bearer dummy-access-token-1234567890" \
   "userName": "더미 사용자",
   "phoneNumber": "010-1234-5678",
   "userLocation": "서울시 강남구",
-  "createdAt": "2025-08-12T10:14:10.085936",
-  "updatedAt": "2025-08-12T10:14:10.085936",
+  "createdAt": "2025-08-14T10:14:10.085936",
+  "updatedAt": "2025-08-14T10:14:10.085936",
   "active": true
 }
 ```
