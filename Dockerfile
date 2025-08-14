@@ -2,7 +2,7 @@
 FROM openjdk:17-jdk-slim AS builder
 
 # Set environment variables for Gradle
-ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Xmx2048m -XX:MaxPermSize=512m"
+ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Xmx2048m"
 ENV GRADLE_HOME="/opt/gradle"
 ENV PATH="${GRADLE_HOME}/bin:${PATH}"
 
