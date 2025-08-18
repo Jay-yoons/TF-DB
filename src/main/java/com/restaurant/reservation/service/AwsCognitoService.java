@@ -44,13 +44,6 @@ public class AwsCognitoService {
      * Cognito 로그인 URL 생성
      */
     public String generateLoginUrl(String state) {
-        if (cognitoConfig.isDummyMode()) {
-            // 더미 모드: 로컬 테스트용 URL 생성
-            String dummyUrl = "http://localhost:8082/api/users/login/dummy?state=" + state;
-            logger.info("더미 모드 로그인 URL 생성: {}", dummyUrl);
-            return dummyUrl;
-        }
-        
         String loginUrl = cognitoConfig.getAuthorizeEndpoint() +
                 "?response_type=" + cognitoConfig.getResponseType() +
                 "&client_id=" + cognitoConfig.getClientId() +

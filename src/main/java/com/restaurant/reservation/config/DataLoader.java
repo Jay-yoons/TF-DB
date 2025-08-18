@@ -10,8 +10,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-@Component
-@org.springframework.context.annotation.Profile({"dev", "test"}) // 개발 및 테스트 환경에서만 실행
+// @Component
+// @org.springframework.context.annotation.Profile({"dev", "test"}) // 개발 및 테스트 환경에서만 실행
+// 프로덕션 배포를 위해 완전히 비활성화
 public class DataLoader implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);

@@ -10,15 +10,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.restaurant.reservation.config.CognitoAuthenticationFilter;
+import com.restaurant.reservation.config.AlbCognitoAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final CognitoAuthenticationFilter cognitoAuthenticationFilter;
+    private final AlbCognitoAuthenticationFilter albCognitoAuthenticationFilter;
 
-    public SecurityConfig(CognitoAuthenticationFilter cognitoAuthenticationFilter) {
+    public SecurityConfig(CognitoAuthenticationFilter cognitoAuthenticationFilter, 
+                         AlbCognitoAuthenticationFilter albCognitoAuthenticationFilter) {
         this.cognitoAuthenticationFilter = cognitoAuthenticationFilter;
+        this.albCognitoAuthenticationFilter = albCognitoAuthenticationFilter;
     }
 
     @Bean
@@ -76,6 +80,7 @@ public class SecurityConfig {
             .headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.sameOrigin())
             )
+            .addFilterBefore(albCognitoAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(cognitoAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

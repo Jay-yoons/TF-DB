@@ -298,17 +298,17 @@ public class UserController {
     
     /**
      * 더미 데이터 생성 (개발용)
-     * 실제 배포환경에서는 비활성화됨
+     * 프로덕션 배포를 위해 완전히 비활성화
      */
-    @PostMapping("/dummy/data")
-    public ResponseEntity<Map<String, Object>> createDummyData() {
-        // 실제 배포환경에서는 더미 데이터 생성 비활성화
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", "더미 데이터 생성은 개발 환경에서만 사용 가능합니다.");
-        
-        return ResponseEntity.badRequest().body(response);
-    }
+    // @PostMapping("/dummy/data")
+    // public ResponseEntity<Map<String, Object>> createDummyData() {
+    //     // 프로덕션 배포를 위해 완전히 비활성화
+    //     Map<String, Object> response = new HashMap<>();
+    //     response.put("success", false);
+    //     response.put("message", "더미 데이터 생성은 개발 환경에서만 사용 가능합니다.");
+    //     
+    //     return ResponseEntity.badRequest().body(response);
+    // }
 
     /**
      * 마이페이지 - 내가 작성한 리뷰 목록 조회
@@ -323,14 +323,7 @@ public class UserController {
 
             logger.info("내 리뷰 목록 조회 요청: userId={}", userId);
 
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 리뷰 데이터 반환
-                List<ReviewDto> reviews = getDummyReviews(userId);
-                logger.info("더미 모드 내 리뷰 목록 조회 완료: userId={}, count={}", userId, reviews.size());
-                return ResponseEntity.ok(reviews);
-            }
-
-            // 실제 Store Service에서 리뷰 데이터를 가져오기
+            // Store Service에서 리뷰 데이터를 가져오기
             List<ReviewDto> reviews = storeServiceIntegration.getUserReviews(userId);
 
             logger.info("내 리뷰 목록 조회 완료: userId={}, count={}", userId, reviews.size());
@@ -355,14 +348,7 @@ public class UserController {
 
             logger.info("리뷰 관련 가게 정보 조회 요청: userId={}, reviewId={}", userId, reviewId);
 
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 가게 정보 반환
-                Map<String, Object> storeInfo = getDummyStoreInfo(reviewId);
-                logger.info("더미 모드 리뷰 관련 가게 정보 조회 완료: reviewId={}", reviewId);
-                return ResponseEntity.ok(storeInfo);
-            }
-
-            // 실제 Store Service에서 가게 정보를 가져오기
+            // Store Service에서 가게 정보를 가져오기
             Map<String, Object> storeInfo = storeServiceIntegration.getStoreInfoForReview(reviewId);
 
             logger.info("리뷰 관련 가게 정보 조회 완료: reviewId={}", reviewId);
@@ -374,84 +360,7 @@ public class UserController {
         }
     }
 
-    /**
-     * 더미 리뷰 데이터 생성 (실제로는 Store Service에서 가져와야 함)
-     */
-    private List<ReviewDto> getDummyReviews(String userId) {
-        List<ReviewDto> reviews = new ArrayList<>();
-        
-        reviews.add(new ReviewDto(
-            1L, "store001", "맛있는 한식당", userId, "사용자1",
-            "정말 맛있었어요! 다음에 또 방문하고 싶습니다.", 5,
-            java.time.LocalDateTime.now().minusDays(2), java.time.LocalDateTime.now().minusDays(2)
-        ));
-        
-        reviews.add(new ReviewDto(
-            2L, "store002", "신선한 중식당", userId, "사용자1",
-            "음식이 신선하고 맛있었습니다. 서비스도 좋았어요.", 4,
-            java.time.LocalDateTime.now().minusDays(5), java.time.LocalDateTime.now().minusDays(5)
-        ));
-        
-        reviews.add(new ReviewDto(
-            3L, "store003", "분위기 좋은 카페", userId, "사용자1",
-            "분위기가 정말 좋고 커피도 맛있었습니다.", 5,
-            java.time.LocalDateTime.now().minusDays(10), java.time.LocalDateTime.now().minusDays(10)
-        ));
-        
-        return reviews;
-    }
 
-    /**
-     * 더미 가게 정보 생성 (실제로는 Store Service에서 가져와야 함)
-     */
-    private Map<String, Object> getDummyStoreInfo(Long reviewId) {
-        Map<String, Object> storeInfo = new HashMap<>();
-        
-        // reviewId에 따라 다른 가게 정보 반환
-        if (reviewId == 1L) {
-            storeInfo.put("storeId", "store001");
-            storeInfo.put("storeName", "맛있는 한식당");
-            storeInfo.put("storeUrl", "/stores/store001/reviews");
-        } else if (reviewId == 2L) {
-            storeInfo.put("storeId", "store002");
-            storeInfo.put("storeName", "신선한 중식당");
-            storeInfo.put("storeUrl", "/stores/store002/reviews");
-        } else if (reviewId == 3L) {
-            storeInfo.put("storeId", "store003");
-            storeInfo.put("storeName", "분위기 좋은 카페");
-            storeInfo.put("storeUrl", "/stores/store003/reviews");
-        } else {
-            storeInfo.put("storeId", "unknown");
-            storeInfo.put("storeName", "알 수 없는 가게");
-            storeInfo.put("storeUrl", "/stores");
-        }
-        
-        return storeInfo;
-    }
-    
-    /**
-     * 더미 즐겨찾기 가게 데이터 생성 (실제로는 데이터베이스에서 가져와야 함)
-     */
-    private List<FavoriteStoreDto> getDummyFavoriteStores(String userId) {
-        List<FavoriteStoreDto> favoriteStores = new ArrayList<>();
-        
-        favoriteStores.add(new FavoriteStoreDto(
-            1L, "store001", "맛있는 한식당", userId,
-            java.time.LocalDateTime.now().minusDays(5)
-        ));
-        
-        favoriteStores.add(new FavoriteStoreDto(
-            2L, "store002", "신선한 중식당", userId,
-            java.time.LocalDateTime.now().minusDays(3)
-        ));
-        
-        favoriteStores.add(new FavoriteStoreDto(
-            3L, "store003", "분위기 좋은 카페", userId,
-            java.time.LocalDateTime.now().minusDays(1)
-        ));
-        
-        return favoriteStores;
-    }
 
     // =============================================================================
     // 즐겨찾기 가게 관련 API
@@ -516,15 +425,6 @@ public class UserController {
 
             logger.info("즐겨찾기 가게 추가 요청: userId={}, storeId={}", userId, storeId);
 
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 즐겨찾기 가게 생성
-                FavoriteStoreDto dummyFavoriteStore = new FavoriteStoreDto(
-                    999L, storeId, "더미 가게", userId, java.time.LocalDateTime.now()
-                );
-                logger.info("더미 모드 즐겨찾기 가게 추가 완료: userId={}, storeId={}", userId, storeId);
-                return ResponseEntity.status(HttpStatus.CREATED).body(dummyFavoriteStore);
-            }
-
             FavoriteStoreDto favoriteStore = userService.addFavoriteStore(userId, storeId);
 
             logger.info("즐겨찾기 가게 추가 완료: userId={}, storeId={}", userId, storeId);
@@ -577,16 +477,6 @@ public class UserController {
 
             logger.info("즐겨찾기 상태 확인 요청: userId={}, storeId={}", userId, storeId);
 
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 즐겨찾기 상태 반환
-                boolean isFavorite = storeId.equals("store001") || storeId.equals("store002") || storeId.equals("store003");
-                Map<String, Object> response = new HashMap<>();
-                response.put("isFavorite", isFavorite);
-                response.put("storeId", storeId);
-                logger.info("더미 모드 즐겨찾기 상태 확인 완료: userId={}, storeId={}, isFavorite={}", userId, storeId, isFavorite);
-                return ResponseEntity.ok(response);
-            }
-
             boolean isFavorite = userService.isFavoriteStore(userId, storeId);
 
             Map<String, Object> response = new HashMap<>();
@@ -616,14 +506,6 @@ public class UserController {
             }
 
             logger.info("즐겨찾기 가게 개수 조회 요청: userId={}", userId);
-
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 즐겨찾기 개수 반환
-                Map<String, Object> response = new HashMap<>();
-                response.put("count", 3);
-                logger.info("더미 모드 즐겨찾기 가게 개수 조회 완료: userId={}, count=3", userId);
-                return ResponseEntity.ok(response);
-            }
 
             long count = userService.getFavoriteStoreCount(userId);
 
