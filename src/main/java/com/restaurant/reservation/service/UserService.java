@@ -226,7 +226,6 @@ public class UserService {
                 store.put("categoryCode", row[6]);
                 store.put("categoryName", row[7]);
                 store.put("seatNum", row[8]);
-                store.put("favoriteCreatedAt", row[9]);
                 favoriteStores.add(store);
             }
             
@@ -336,14 +335,12 @@ public class UserService {
                 dashboard.put("userName", result[1]);
                 dashboard.put("phoneNumber", result[2]);
                 dashboard.put("userLocation", result[3]);
-                dashboard.put("isActive", result[4]);
-                dashboard.put("userCreatedAt", result[5]);
-                dashboard.put("favoriteCount", result[6]);
-                dashboard.put("reviewCount", result[7]);
-                dashboard.put("avgReviewScore", result[8]);
-                dashboard.put("totalBookingCount", result[9]);
-                dashboard.put("activeBookingCount", result[10]);
-                dashboard.put("cancelledBookingCount", result[11]);
+                dashboard.put("favoriteCount", result[4]);
+                dashboard.put("reviewCount", result[5]);
+                dashboard.put("avgReviewScore", result[6]);
+                dashboard.put("totalBookingCount", result[7]);
+                dashboard.put("activeBookingCount", result[8]);
+                dashboard.put("cancelledBookingCount", result[9]);
             }
             
             logger.info("뷰를 사용한 대시보드 통계 조회 완료: userId={}", userId);

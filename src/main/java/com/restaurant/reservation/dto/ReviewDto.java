@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
 
 /**
  * 리뷰 정보를 담는 DTO 클래스
@@ -21,6 +20,4 @@ public class ReviewDto {
     private String userName;
     private String content;
     private Integer rating;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

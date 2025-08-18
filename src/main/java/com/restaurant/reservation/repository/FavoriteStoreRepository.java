@@ -17,7 +17,7 @@ import java.util.Optional;
  * 
  * @author FOG Team
  * @version 2.0
- * @since 2024-01-15
+ * @since 2025-08-18
  */
 @Repository
 public interface FavoriteStoreRepository extends JpaRepository<FavoriteStore, Long> {
@@ -71,9 +71,9 @@ public interface FavoriteStoreRepository extends JpaRepository<FavoriteStore, Lo
      * DB 담당자 피드백: STORE_NAME 컬럼이 추가되어 JOIN 불필요
      * 
      * @param userId 사용자 ID
-     * @return 즐겨찾기 가게 상세 정보 목록 [STORE_ID, STORE_NAME, CREATED_AT]
+     * @return 즐겨찾기 가게 상세 정보 목록 [STORE_ID, STORE_NAME]
      */
-    @Query(value = "SELECT STORE_ID, STORE_NAME, CREATED_AT FROM FAV_STORE WHERE USER_ID = :userId ORDER BY CREATED_AT DESC", nativeQuery = true)
+    @Query(value = "SELECT STORE_ID, STORE_NAME FROM FAV_STORE WHERE USER_ID = :userId", nativeQuery = true)
     List<Object[]> findFavoriteStoresWithDetails(@Param("userId") String userId);
     
     /**

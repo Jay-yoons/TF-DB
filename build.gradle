@@ -92,14 +92,11 @@ dependencies {
 
     // =============================================================================
     // Oracle DB 의존성 (AWS MSA 프로덕션 환경용)
-    // 실제 배포 시 주석 해제 필요
+    // 실제 배포 환경용 - 주석 처리
     // =============================================================================
     // runtimeOnly 'com.oracle.database.jdbc:ojdbc11:23.3.0.23.09'
-    // runtimeOnly 'com.oracle.database.security:oraclepki:23.3.0.23.09'
-    // runtimeOnly 'com.oracle.database.security:osdt_core:23.3.0.23.09'
-    // runtimeOnly 'com.oracle.database.security:osdt_cert:23.3.0.23.09'
 
-    // H2 DB (개발 환경용 인메모리 데이터베이스)
+    // H2 DB (개발 환경용 인메모리 데이터베이스) - 활성화
     runtimeOnly 'com.h2database:h2'
 
     // =============================================================================

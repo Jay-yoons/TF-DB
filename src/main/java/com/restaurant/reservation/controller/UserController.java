@@ -41,8 +41,16 @@ import java.util.ArrayList;
     "http://localhost:3000",  // Vue.js 개발 서버
     "http://localhost:8080",  // Vite 개발 서버
     "http://localhost:8081",  // 추가 개발 서버
-    "http://localhost:8082"   // User Service 자체
-})
+    "http://localhost:8082",  // User Service 자체
+    "http://localhost:5173",  // Vite 기본 포트
+    "http://localhost:4173",  // Vite 프리뷰 포트
+    "http://127.0.0.1:3000",  // IP 주소
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:8081",
+    "http://127.0.0.1:8082",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:4173"
+}, allowCredentials = "true")
 public class UserController {
     
     // 로깅을 위한 Logger 인스턴스
@@ -297,14 +305,14 @@ public class UserController {
     
     /**
      * 더미 데이터 생성 (개발용)
-     * 프로덕션 배포를 위해 완전히 비활성화
+     * 프론트엔드 테스트를 위해 비활성화
      */
     // @PostMapping("/dummy/data")
     // public ResponseEntity<Map<String, Object>> createDummyData() {
-    //     // 프로덕션 배포를 위해 완전히 비활성화
+    //     // 프론트엔드 테스트를 위해 비활성화
     //     Map<String, Object> response = new HashMap<>();
     //     response.put("success", false);
-    //     response.put("message", "더미 데이터 생성은 개발 환경에서만 사용 가능합니다.");
+    //     response.put("message", "더미 데이터 생성은 비활성화되었습니다.");
     //     
     //     return ResponseEntity.badRequest().body(response);
     // }

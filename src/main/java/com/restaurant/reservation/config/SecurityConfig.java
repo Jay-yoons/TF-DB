@@ -54,8 +54,8 @@ public class SecurityConfig {
                 // =============================================================================
                 .requestMatchers("/login/status", "/login/logout", "/users/count", "/users", "/api/auth/**", 
                                "/api/users/login", "/api/users/login/url", "/api/users/login/callback", 
-                               "/api/users/count", "/api/users/signup", 
-                               "/api/users/dashboard/counts", "/health").permitAll()
+                               "/api/users/count", "/api/users/signup", "/api/users/check/**",
+                               "/api/users/dashboard/counts", "/health", "/api/users/dummy/**").permitAll()
                 
                 // =============================================================================
                 // MSA 연동 API (인증 불필요)

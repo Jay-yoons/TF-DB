@@ -5,10 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 /**
  * 사용자 즐겨찾기 가게 엔티티 클래스
@@ -20,7 +16,7 @@ import java.time.LocalDateTime;
  * - favStoreId: 즐겨찾기 고유 ID (기본키)
  * - userId: 사용자 ID (외래키)
  * - storeId: 가게 ID (외래키)
- * - createdAt: 생성일시 (자동 생성)
+ * - storeName: 가게 이름
  * 
  * 제약조건:
  * - (userId, storeId) 복합 유니크 제약조건
@@ -33,7 +29,6 @@ import java.time.LocalDateTime;
 @Table(name = "FAV_STORE", uniqueConstraints = {
     @UniqueConstraint(name = "fav_store_un", columnNames = {"USER_ID", "STORE_ID2"})
 })
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -69,14 +64,6 @@ public class FavoriteStore {
      */
     @Column(name = "STORE_NAME", length = 100)
     private String storeName;
-    
-    /**
-     * 생성일시
-     * 자동 생성되며 수정 불가
-     */
-    @CreatedDate
-    @Column(name = "CREATED_AT", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
     
     // Custom constructors for partial fields
     public FavoriteStore(String userId, String storeId) {

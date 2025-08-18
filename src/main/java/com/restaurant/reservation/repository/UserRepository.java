@@ -15,8 +15,8 @@ public interface UserRepository extends JpaRepository<User, String> {
     @Query("SELECT u.userName, u.phoneNumber FROM User u WHERE u.userName = :userName OR u.phoneNumber = :phoneNumber")
     Optional<Object[]> findUserNameAndPhoneNumberByUserNameOrPhoneNumber(@Param("userName") String userName, @Param("phoneNumber") String phoneNumber);
     
-    // 사용자 정보 조회용
-    @Query("SELECT u.userId, u.userName, u.phoneNumber, u.userLocation, u.createdAt FROM User u WHERE u.userId = :userId")
+    // 사용자 정보 조회용 (createdAt 제거)
+    @Query("SELECT u.userId, u.userName, u.phoneNumber, u.userLocation FROM User u WHERE u.userId = :userId")
     Optional<Object[]> findUserInfoByUserId(@Param("userId") String userId);
     
     // 중복 확인용

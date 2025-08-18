@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -19,5 +18,4 @@ public class FavoriteResponseDto {
     private String categoryCode;
     private Double averageRating;
     private Boolean isOpen;
-    private LocalDateTime createdAt;
 }
