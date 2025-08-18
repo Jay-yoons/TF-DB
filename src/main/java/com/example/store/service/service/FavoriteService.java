@@ -64,4 +64,11 @@ public class FavoriteService { // [중요] 파일명은 FavoriteService.java
     public boolean isFavorite(String userId, String storeId) {
         return favStoreRepository.findByStoreIdAndUserId(storeId, userId).isPresent();
     }
+
+    /**
+     * 내 즐겨찾기 목록 조회.
+     */
+    public List<FavStore> listFavorites(String userId) {
+        return favStoreRepository.findByUserId(userId);
+    }
 }

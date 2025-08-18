@@ -5,17 +5,17 @@ package com.example.store.service.controller;
 import com.example.store.service.entity.FavStore;
 import com.example.store.service.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
  * 즐겨찾기 API.
- * - POST /api/favorites?userId=U1&storeId=S1  : 추가
- * - DELETE /api/favorites?userId=U1&storeId=S1: 제거
- * - GET /api/favorites/me?userId=U1           : 내 즐겨찾기 목록
- *
- * [주의] 인증 연동 시 userId는 토큰에서 추출하도록 변경하는 것이 일반적입니다.
+ * - POST /api/favorites?storeId=S1   : 추가 (userId는 JWT sub에서 추출)
+ * - DELETE /api/favorites?storeId=S1 : 제거
+ * - GET /api/favorites/status?storeId=S1 : 즐겨찾기 여부 확인
  */
 @RestController
 @RequiredArgsConstructor
@@ -24,25 +24,39 @@ public class FavoriteController {
 
     private final FavoriteService favoriteService;
 
-    // [생성] 즐겨찾기 추가
+    // [생성] 즐겨찾기 추가 - userId는 토큰(sub)에서 추출
     @PostMapping
-    public FavStore add(@RequestParam String userId, @RequestParam String storeId) {
+    public FavStore add(@AuthenticationPrincipal Jwt jwt, @RequestParam String storeId) {
+        String userId = jwt.getClaimAsString("sub");
         return favoriteService.addFavorite(userId, storeId);
     }
 
     // [삭제] 즐겨찾기 제거
     @DeleteMapping
-    public void remove(@RequestParam String userId, @RequestParam String storeId) {
+    public void remove(@AuthenticationPrincipal Jwt jwt, @RequestParam String storeId) {
+        String userId = jwt.getClaimAsString("sub");
         favoriteService.removeFavorite(userId, storeId);
     }
 
     // [조회] 즐겨찾기 여부(단건)
-    // - 스토어 상세에서 '내 즐겨찾기인지' 확인 용도로만 사용
-    // - 응답 최소화: { "isFavorite": true/false }
     @GetMapping("/status")
-    public java.util.Map<String, Boolean> isFavorite(@RequestParam String userId, @RequestParam String storeId) {
+    public java.util.Map<String, Boolean> isFavorite(@AuthenticationPrincipal Jwt jwt, @RequestParam String storeId) {
+        String userId = jwt.getClaimAsString("sub");
         boolean val = favoriteService.isFavorite(userId, storeId);
         return java.util.Collections.singletonMap("isFavorite", val);
     }
 
+    // [조회] 내 즐겨찾기 목록
+    @GetMapping("/me")
+    public List<FavStore> myFavorites(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getClaimAsString("sub");
+        return favoriteService.listFavorites(userId);
+    }
+
+    // [조회 - 별칭] 내 즐겨찾기 목록 (설계안: GET /favorites)
+    @GetMapping
+    public List<FavStore> myFavoritesAlias(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getClaimAsString("sub");
+        return favoriteService.listFavorites(userId);
+    }
 }

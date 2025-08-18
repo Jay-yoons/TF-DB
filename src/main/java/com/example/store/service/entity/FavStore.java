@@ -38,6 +38,6 @@ public class FavStore { // [중요] 파일명은 FavStore.java, public class도 
     @Column(name = "STORE_NAME", length = 50)
     private String storeName;
 
-    @Column(name = "USER_ID", length = 15, nullable = false)
-    private String userId; // 사용자 식별자
+    @Column(name = "USER_ID", length = 50, nullable = false)
+    private String userId; // 사용자 식별자(Cognito sub 권장)
 }

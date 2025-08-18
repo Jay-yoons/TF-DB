@@ -1,4 +1,5 @@
 // TypeScript
+import { authHeaders } from './auth'
 // 프록시 사용 중이면 빈 문자열 유지
 const API = ''
 
@@ -18,26 +19,35 @@ export type StoreLocation = { latitude: string; longitude: string }
 
 export async function listStores(categoryCode?: number): Promise<StoreSummary[]> {
   const q = categoryCode != null ? `?categoryCode=${categoryCode}` : ''
-  const res = await fetch(`${API}/api/stores${q}`)
+  const res = await fetch(`${API}/api/stores${q}`, {
+    headers: await authHeaders(),
+  })
   if (!res.ok) throw new Error('listStores failed: ' + res.status)
   return res.json()
 }
 
 export async function getStoreDetail(storeId: string): Promise<StoreDetail> {
-  const res = await fetch(`${API}/api/stores/${storeId}`)
+  const res = await fetch(`${API}/api/stores/${storeId}`, {
+    headers: await authHeaders(),
+  })
   if (!res.ok) throw new Error('getStoreDetail failed: ' + res.status)
   return res.json()
 }
 
 export async function getStoreLocation(storeId: string): Promise<StoreLocation> {
-  const res = await fetch(`${API}/api/stores/${storeId}/location`)
+  const res = await fetch(`${API}/api/stores/${storeId}/location`, {
+    headers: await authHeaders(),
+  })
   if (!res.ok) throw new Error('getStoreLocation failed: ' + res.status)
   return res.json()
 }
 
 // ---------- Seats (Booking) ----------
 export async function incrementSeat(storeId: string, count = 1): Promise<number> {
-  const res = await fetch(`${API}/api/stores/${storeId}/seats/increment?count=${count}`, { method: 'POST' })
+  const res = await fetch(`${API}/api/stores/${storeId}/seats/increment?count=${count}`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
   if (!res.ok) {
     const msg = await res.text().catch(() => '')
     throw new Error(`incrementSeat failed: ${res.status} ${msg}`)
@@ -46,7 +56,10 @@ export async function incrementSeat(storeId: string, count = 1): Promise<number>
 }
 
 export async function decrementSeat(storeId: string, count = 1): Promise<number> {
-  const res = await fetch(`${API}/api/stores/${storeId}/seats/decrement?count=${count}`, { method: 'POST' })
+  const res = await fetch(`${API}/api/stores/${storeId}/seats/decrement?count=${count}`, {
+    method: 'POST',
+    headers: await authHeaders(),
+  })
   if (!res.ok) {
     const msg = await res.text().catch(() => '')
     throw new Error(`decrementSeat failed: ${res.status} ${msg}`)
@@ -55,14 +68,18 @@ export async function decrementSeat(storeId: string, count = 1): Promise<number>
 }
 
 export async function getAvailableSeats(storeId: string): Promise<number> {
-  const res = await fetch(`${API}/api/stores/${storeId}/available-seats`)
+  const res = await fetch(`${API}/api/stores/${storeId}/available-seats`, {
+    headers: await authHeaders(),
+  })
   if (!res.ok) throw new Error('getAvailableSeats failed: ' + res.status)
   return res.json()
 }
 
 // ---------- Config (Maps key) ----------
 export async function fetchMapsKey(): Promise<string> {
-  const res = await fetch(`${API}/api/config/maps-key`)
+  const res = await fetch(`${API}/api/config/maps-key`, {
+    headers: await authHeaders(),
+  })
   if (!res.ok) throw new Error('maps-key fetch failed: ' + res.status)
   const data = await res.json()
   return data.googleMapsApiKey || ''
@@ -79,13 +96,14 @@ export type ReviewDto = {
 
 export type ReviewRequest = {
   storeId: string
-  userId: string
   comment: string
   score: number
 }
 
 export async function getStoreReviews(storeId: string): Promise<ReviewDto[]> {
-  const res = await fetch(`${API}/api/reviews/stores/${storeId}`)
+  const res = await fetch(`${API}/api/reviews/stores/${storeId}`, {
+    headers: await authHeaders(),
+  })
   if (!res.ok) throw new Error('getStoreReviews failed: ' + res.status)
   return res.json()
 }
@@ -93,7 +111,7 @@ export async function getStoreReviews(storeId: string): Promise<ReviewDto[]> {
 export async function createReview(req: ReviewRequest): Promise<ReviewDto> {
   const res = await fetch(`${API}/api/reviews`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(req),
   })
   if (!res.ok) {
@@ -179,14 +197,15 @@ export function isOpenNowKST(serviceTime: string): boolean {
 export function openStatusKST(serviceTime: string): '영업중' | '영업종료' {
   return isOpenNowKST(serviceTime) ? '영업중' : '영업종료'
 }
-// [추가 - 타입] 즐겨찾기 항목(백엔드 FavStore와 1:1)
+
+// 즐겨찾기 API
 export type FavoriteItem = { favStoreId: number; storeId: string; storeName: string; userId: string }
 
-// [추가 - API] 즐겨찾기 추가
-export async function addFavorite(userId: string, storeId: string): Promise<void> {
-  // [주의] 인증 연동 전이므로 userId를 파라미터로 전달
-  const res = await fetch(`${API}/api/favorites?userId=${encodeURIComponent(userId)}&storeId=${encodeURIComponent(storeId)}`, {
-    method: 'POST'
+// 즐겨찾기 추가(토큰의 사용자로 처리)
+export async function addFavorite(storeId: string): Promise<void> {
+  const res = await fetch(`${API}/api/favorites?storeId=${encodeURIComponent(storeId)}`, {
+    method: 'POST',
+    headers: await authHeaders(),
   })
   if (!res.ok) {
     const msg = await res.text().catch(() => '')
@@ -194,10 +213,11 @@ export async function addFavorite(userId: string, storeId: string): Promise<void
   }
 }
 
-// [추가 - API] 즐겨찾기 제거
-export async function removeFavorite(userId: string, storeId: string): Promise<void> {
-  const res = await fetch(`${API}/api/favorites?userId=${encodeURIComponent(userId)}&storeId=${encodeURIComponent(storeId)}`, {
-    method: 'DELETE'
+// 즐겨찾기 제거
+export async function removeFavorite(storeId: string): Promise<void> {
+  const res = await fetch(`${API}/api/favorites?storeId=${encodeURIComponent(storeId)}`, {
+    method: 'DELETE',
+    headers: await authHeaders(),
   })
   if (!res.ok) {
     const msg = await res.text().catch(() => '')
@@ -205,9 +225,24 @@ export async function removeFavorite(userId: string, storeId: string): Promise<v
   }
 }
 
-// [추가 - API] 내 즐겨찾기 목록
-export async function getMyFavorites(userId: string): Promise<FavoriteItem[]> {
-  const res = await fetch(`${API}/api/favorites/me?userId=${encodeURIComponent(userId)}`)
+// 즐겨찾기 여부 확인
+export async function isFavorite(storeId: string): Promise<boolean> {
+  const res = await fetch(`${API}/api/favorites/status?storeId=${encodeURIComponent(storeId)}`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) {
+    const msg = await res.text().catch(() => '')
+    throw new Error(`isFavorite failed: ${res.status} ${msg}`)
+  }
+  const data = await res.json()
+  return !!data?.isFavorite
+}
+
+// 내 즐겨찾기 목록
+export async function getMyFavorites(): Promise<FavoriteItem[]> {
+  const res = await fetch(`${API}/api/favorites/me`, {
+    headers: await authHeaders(),
+  })
   if (!res.ok) throw new Error('getMyFavorites failed: ' + res.status)
   return res.json()
 }

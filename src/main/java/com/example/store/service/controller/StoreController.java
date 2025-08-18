@@ -6,6 +6,11 @@ import com.example.store.service.entity.Store;
 import com.example.store.service.service.StoreService;
 import com.example.store.service.service.StoreImageService;
 import com.example.store.service.dto.StoreResponse;
+import com.example.store.service.dto.ReviewDto;
+import com.example.store.service.dto.ReviewRequestDto;
+import com.example.store.service.service.ReviewService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
 import java.util.Map;
@@ -21,10 +26,12 @@ public class StoreController {
 
     private final StoreService service;
     private final StoreImageService imageService;
+    private final ReviewService reviewService;
 
-    public StoreController(StoreService service, StoreImageService imageService) {
+    public StoreController(StoreService service, StoreImageService imageService, ReviewService reviewService) {
         this.service = service;
         this.imageService = imageService;
+        this.reviewService = reviewService;
     }
 
     /** 가게 목록 API (옵션: categoryCode로 필터링) */
@@ -110,5 +117,22 @@ public class StoreController {
     @PostMapping("/{storeId}/seats/decrement")
     public int decrementInUsingSeat(@PathVariable String storeId, @RequestParam(defaultValue = "1") int count) {
         return service.decrementInUsingSeat(storeId, count);
+    }
+
+    /** [별칭] 가게 리뷰 목록 (설계안 호환: GET /stores/{storeId}/reviews) */
+    @GetMapping("/{storeId}/reviews")
+    public List<ReviewDto> storeReviewsAlias(@PathVariable String storeId) {
+        return reviewService.getStoreReviews(storeId);
+    }
+
+    /** [별칭] 가게 리뷰 작성 (설계안 호환: POST /stores/{storeId}/reviews) */
+    @PostMapping("/{storeId}/reviews")
+    public ReviewDto createStoreReviewAlias(@PathVariable String storeId,
+                                            @AuthenticationPrincipal Jwt jwt,
+                                            @RequestBody ReviewRequestDto dto) {
+        String userId = jwt.getClaimAsString("sub");
+        // 경로에서 받은 storeId를 DTO에 세팅하여 재사용
+        dto.setStoreId(storeId);
+        return reviewService.createReview(userId, dto);
     }
 }

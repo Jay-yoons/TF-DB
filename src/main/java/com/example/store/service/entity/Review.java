@@ -32,11 +32,11 @@ public class Review {
     private String storeId;
 
     // [추가] 비정규화된 스토어명 저장용 컬럼 매핑 (DB 컬럼: STORE_NAME)
-// - 참고: STORES.STORE_NAME와 동기화 정책은 서비스/배치에서 결정
+    // - 참고: STORES.STORE_NAME와 동기화 정책은 서비스/배치에서 결정
     @Column(name = "STORE_NAME", length = 50)
     private String storeName;
 
-    @Column(name = "USER_ID", length = 15, nullable = false)
+    @Column(name = "USER_ID", length = 50, nullable = false)
     private String userId;
 
     @Column(name = "COMENT", length = 50)

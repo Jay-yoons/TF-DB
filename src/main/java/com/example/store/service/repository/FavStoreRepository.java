@@ -37,5 +37,9 @@ public interface FavStoreRepository extends JpaRepository<FavStore, Long> {
      */
     Optional<FavStore> findByStoreIdAndUserId(String storeId, String userId);
 
-    // [주의] 사용자별 즐겨찾기 목록은 사용자/즐겨찾기 도메인에서 제공하는 것이 바람직하여 본 서비스에서는 제공하지 않습니다.
+    /**
+     * 사용자별 즐겨찾기 목록 조회.
+     * - JWT의 sub 값을 userId로 사용
+     */
+    List<FavStore> findByUserId(String userId);
 }
