@@ -56,23 +56,13 @@ public class CognitoAuthenticationFilter extends OncePerRequestFilter {
                 String userId = (String) userInfo.get("sub");
                 
                 if (userId != null) {
-                    if (cognitoConfig.isDummyMode()) {
-                        // 더미 모드: 더미 사용자 정보로 인증
-                        UserDetails dummyUserDetails = createDummyUserDetails(userId);
-                        UsernamePasswordAuthenticationToken authentication = 
-                            new UsernamePasswordAuthenticationToken(dummyUserDetails, null, dummyUserDetails.getAuthorities());
-                        
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        logger.debug("더미 모드 인증 성공: userId={}", userId);
-                    } else {
-                        // 실제 모드: 데이터베이스에서 사용자 정보 조회
-                        UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
-                        UsernamePasswordAuthenticationToken authentication = 
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                        
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        logger.debug("Cognito 인증 성공: userId={}", userId);
-                    }
+                    // 데이터베이스에서 사용자 정보 조회
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+                    UsernamePasswordAuthenticationToken authentication = 
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    logger.debug("Cognito 인증 성공: userId={}", userId);
                 }
             }
             
@@ -97,18 +87,5 @@ public class CognitoAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
     
-    /**
-     * 더미 사용자 정보 생성
-     */
-    private UserDetails createDummyUserDetails(String userId) {
-        return org.springframework.security.core.userdetails.User.builder()
-            .username(userId)
-            .password("dummy-password")
-            .authorities("ROLE_USER")
-            .accountExpired(false)
-            .accountLocked(false)
-            .credentialsExpired(false)
-            .disabled(false)
-            .build();
-    }
+
 }

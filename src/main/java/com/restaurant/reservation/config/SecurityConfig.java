@@ -50,7 +50,7 @@ public class SecurityConfig {
                 // =============================================================================
                 .requestMatchers("/login/status", "/login/logout", "/users/count", "/users", "/api/auth/**", 
                                "/api/users/login", "/api/users/login/url", "/api/users/login/callback", 
-                               "/api/users/login/dummy", "/api/users/dummy/data", "/api/users/count", "/api/users/signup", 
+                               "/api/users/count", "/api/users/signup", 
                                "/api/users/dashboard/counts", "/health").permitAll()
                 
                 // =============================================================================
@@ -74,7 +74,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers
-                .frameOptions().sameOrigin()
+                .frameOptions(frameOptions -> frameOptions.sameOrigin())
             )
             .addFilterBefore(cognitoAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

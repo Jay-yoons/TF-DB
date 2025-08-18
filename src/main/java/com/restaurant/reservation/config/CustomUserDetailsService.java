@@ -32,9 +32,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         logger.debug("사용자 정보 로드 요청: userId={}", userId);
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    logger.warn("사용자를 찾을 수 없습니다: userId={}", userId);
-                    return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId);
+                .orElseGet(() -> {
+                    logger.info("새로운 Cognito 사용자 발견: userId={}, 자동 생성 중...", userId);
+                    // 새로운 Cognito 사용자를 자동으로 생성
+                    return createNewUserFromCognito(userId);
                 });
         
         if (!user.isActive()) {
@@ -45,7 +46,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Spring Security UserDetails 객체 생성
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUserId())
-                .password(user.getPassword())
+                .password("N/A") // Cognito 사용자는 로컬 패스워드가 없음
                 .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
                 .accountExpired(false)
                 .accountLocked(false)
@@ -55,5 +56,22 @@ public class CustomUserDetailsService implements UserDetailsService {
         
         logger.debug("사용자 정보 로드 완료: userId={}", userId);
         return userDetails;
+    }
+    
+    /**
+     * Cognito에서 로그인한 새로운 사용자를 데이터베이스에 자동 생성
+     */
+    private User createNewUserFromCognito(String userId) {
+        User newUser = new User();
+        newUser.setUserId(userId);
+        newUser.setUserName("Cognito User");
+        newUser.setPhoneNumber("000-0000-0000"); // 임시 전화번호
+        newUser.setUserLocation("Unknown");
+        newUser.setActive(true);
+        newUser.setPassword("N/A"); // Cognito 사용자는 로컬 패스워드가 없음
+        
+        User savedUser = userRepository.save(newUser);
+        logger.info("새로운 Cognito 사용자 생성 완료: userId={}", userId);
+        return savedUser;
     }
 }

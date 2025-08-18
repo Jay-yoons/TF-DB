@@ -30,7 +30,6 @@ public class AwsCognitoConfig {
     private String scope;
     private String responseType;
     private String grantType;
-    private boolean dummyMode;
     
     // Getters and Setters
     public String getRegion() {
@@ -137,18 +136,9 @@ public class AwsCognitoConfig {
         this.grantType = grantType;
     }
     
-    public boolean isDummyMode() {
-        return dummyMode;
-    }
-    
-    public void setDummyMode(boolean dummyMode) {
-        this.dummyMode = dummyMode;
-    }
-    
     @PostConstruct
     public void printConfig() {
         System.out.println("=== AWS Cognito Configuration ===");
-        System.out.println("Dummy Mode: " + dummyMode);
         System.out.println("Region: " + region);
         System.out.println("User Pool ID: " + userPoolId);
         System.out.println("Client ID: " + clientId);

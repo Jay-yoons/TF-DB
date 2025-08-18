@@ -136,43 +136,7 @@ public class UserController {
         }
     }
     
-    /**
-     * 더미 로그인 (개발용)
-     * 실제 배포환경에서는 비활성화됨
-     */
-    @GetMapping("/login/dummy")
-    public ResponseEntity<Map<String, Object>> dummyLogin(@RequestParam String state) {
-        try {
-            logger.info("더미 로그인 요청: state={}", state);
-            
-            // 더미 사용자 정보 생성
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("sub", "dummy-user-123");
-            userInfo.put("username", "더미사용자");
-            userInfo.put("email", "dummy@example.com");
-            userInfo.put("name", "더미사용자");
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("accessToken", "dummy-access-token-1234567890");
-            response.put("idToken", "dummy-id-token-1234567890");
-            response.put("refreshToken", "dummy-refresh-token-1234567890");
-            response.put("tokenType", "Bearer");
-            response.put("expiresIn", 3600);
-            response.put("userInfo", userInfo);
-            response.put("message", "더미 로그인 성공");
-            
-            logger.info("더미 로그인 완료: userId={}", userInfo.get("sub"));
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            logger.error("더미 로그인 중 오류 발생", e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "더미 로그인 처리 중 오류가 발생했습니다.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
+
     
     /**
      * Cognito 콜백 처리 (인증 코드로 토큰 교환)

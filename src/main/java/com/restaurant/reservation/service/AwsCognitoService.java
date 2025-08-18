@@ -1,6 +1,7 @@
 package com.restaurant.reservation.service;
 
 import com.restaurant.reservation.config.AwsCognitoConfig;
+import com.restaurant.reservation.config.JwtTokenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -31,9 +32,11 @@ public class AwsCognitoService {
     
     private final AwsCognitoConfig cognitoConfig;
     private final RestTemplate restTemplate;
+    private final JwtTokenUtil jwtTokenUtil;
     
-    public AwsCognitoService(AwsCognitoConfig cognitoConfig) {
+    public AwsCognitoService(AwsCognitoConfig cognitoConfig, JwtTokenUtil jwtTokenUtil) {
         this.cognitoConfig = cognitoConfig;
+        this.jwtTokenUtil = jwtTokenUtil;
         this.restTemplate = new RestTemplate();
     }
     
@@ -63,12 +66,6 @@ public class AwsCognitoService {
      * 인증 코드로 액세스 토큰 교환
      */
     public Map<String, Object> exchangeCodeForToken(String authorizationCode) {
-        if (cognitoConfig.isDummyMode()) {
-            // 더미 모드: 더미 토큰 생성
-            logger.info("더미 모드 토큰 교환: code={}", authorizationCode);
-            return generateDummyTokenResponse();
-        }
-        
         try {
             logger.info("인증 코드로 토큰 교환 시작: code={}", authorizationCode);
             
@@ -162,26 +159,12 @@ public class AwsCognitoService {
      */
     public Map<String, Object> getUserInfoFromIdToken(String idToken) {
         try {
-            // ID 토큰을 디코딩하여 사용자 정보 추출
-            // 실제 구현에서는 JWT 라이브러리를 사용하여 토큰을 검증하고 디코딩
             logger.info("ID 토큰에서 사용자 정보 조회");
             
-            if (cognitoConfig.isDummyMode()) {
-                // 더미 모드: 더미 사용자 정보 반환
-                Map<String, Object> userInfo = new HashMap<>();
-                userInfo.put("sub", "dummy4879"); // 실제 생성된 더미 사용자 ID
-                userInfo.put("email", "dummy@example.com");
-                userInfo.put("name", "더미 사용자");
-                
-                return userInfo;
-            }
+            // JWT 토큰에서 사용자 정보 추출
+            Map<String, Object> userInfo = jwtTokenUtil.getUserInfoFromToken(idToken);
             
-            // 임시 구현 - 실제로는 JWT 디코딩 필요
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("sub", "user123"); // 사용자 고유 ID
-            userInfo.put("email", "user@example.com");
-            userInfo.put("name", "사용자");
-            
+            logger.debug("사용자 정보 추출 성공: sub={}", userInfo.get("sub"));
             return userInfo;
             
         } catch (Exception e) {
@@ -191,33 +174,22 @@ public class AwsCognitoService {
     }
     
     /**
-     * 더미 토큰 응답 생성
-     */
-    private Map<String, Object> generateDummyTokenResponse() {
-        Map<String, Object> tokenResponse = new HashMap<>();
-        tokenResponse.put("access_token", "dummy-access-token-" + System.currentTimeMillis());
-        tokenResponse.put("id_token", "dummy-id-token-" + System.currentTimeMillis());
-        tokenResponse.put("refresh_token", "dummy-refresh-token-" + System.currentTimeMillis());
-        tokenResponse.put("token_type", "Bearer");
-        tokenResponse.put("expires_in", 3600);
-        return tokenResponse;
-    }
-    
-    /**
      * 토큰 유효성 검증
      */
     public boolean validateToken(String token) {
-        if (cognitoConfig.isDummyMode()) {
-            // 더미 모드: 더미 토큰 검증
-            return token != null && token.startsWith("dummy-");
-        }
-        
         try {
-            // 실제 구현에서는 JWT 라이브러리를 사용하여 토큰 검증
-            logger.info("토큰 유효성 검증");
+            logger.debug("토큰 유효성 검증 시작");
             
-            // 임시 구현 - 실제로는 JWT 검증 필요
-            return token != null && !token.isEmpty();
+            // JWT 토큰 검증
+            boolean isValid = jwtTokenUtil.validateToken(token);
+            
+            if (isValid) {
+                logger.debug("토큰 검증 성공");
+            } else {
+                logger.warn("토큰 검증 실패");
+            }
+            
+            return isValid;
             
         } catch (Exception e) {
             logger.error("토큰 검증 중 오류 발생", e);
