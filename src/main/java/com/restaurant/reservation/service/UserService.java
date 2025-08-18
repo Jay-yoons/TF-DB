@@ -7,7 +7,7 @@ import com.restaurant.reservation.repository.FavoriteStoreRepository;
 import com.restaurant.reservation.dto.FavoriteStoreDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,25 +44,22 @@ public class UserService {
     // 즐겨찾기 가게 데이터 접근을 위한 Repository
     private final FavoriteStoreRepository favoriteStoreRepository;
     
-    // 비밀번호 암호화를 위한 PasswordEncoder
-    private final PasswordEncoder passwordEncoder;
+
     
     /**
      * 생성자 - 의존성 주입
      * @param userRepository 사용자 데이터 접근 객체
      * @param favoriteStoreRepository 즐겨찾기 가게 데이터 접근 객체
-     * @param passwordEncoder 비밀번호 암호화 도구
      */
-    public UserService(UserRepository userRepository, FavoriteStoreRepository favoriteStoreRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, FavoriteStoreRepository favoriteStoreRepository) {
         this.userRepository = userRepository;
         this.favoriteStoreRepository = favoriteStoreRepository;
-        this.passwordEncoder = passwordEncoder;
     }
     
     /**
      * 회원가입
      */
-    public User signup(String userId, String userName, String phoneNumber, String userLocation, String password) {
+    public User signup(String userId, String userName, String phoneNumber, String userLocation) {
         logger.info("회원가입 요청: userId={}, userName={}, phoneNumber={}", userId, userName, phoneNumber);
         
         // 아이디 중복 확인
@@ -75,19 +72,12 @@ public class UserService {
             throw new RuntimeException("이미 등록된 전화번호입니다.");
         }
         
-        // 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(password);
-        
         // 사용자 생성
         User user = new User();
         user.setUserId(userId);
         user.setUserName(userName);
         user.setPhoneNumber(phoneNumber);
         user.setUserLocation(userLocation);
-        user.setPassword(encodedPassword);
-        user.setActive(true);
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
         
         User savedUser = userRepository.save(user);
         logger.info("회원가입 완료: userId={}", savedUser.getUserId());
@@ -96,23 +86,17 @@ public class UserService {
     }
     
     /**
-     * 로그인
+     * 사용자 조회 (Cognito 인증 후 사용)
      */
-    public User login(String userId, String password) {
-        logger.info("로그인 요청: userId={}", userId);
+    public User getUser(String userId) {
+        logger.info("사용자 조회: userId={}", userId);
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("등록되지 않은 아이디입니다."));
+                .orElseThrow(() -> new RuntimeException("등록되지 않은 사용자입니다."));
         
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
-        }
+
         
-        if (!user.isActive()) {
-            throw new RuntimeException("비활성화된 계정입니다.");
-        }
-        
-        logger.info("로그인 완료: userId={}", user.getUserId());
+        logger.info("사용자 조회 완료: userId={}", user.getUserId());
         return user;
     }
     
@@ -178,12 +162,8 @@ public class UserService {
             user.setUserLocation(updateRequest.get("userLocation"));
         }
         
-        if (updateRequest.containsKey("password")) {
-            String newPassword = updateRequest.get("password");
-            user.setPassword(passwordEncoder.encode(newPassword));
-        }
-        
-        user.setUpdatedAt(LocalDateTime.now());
+
+
         
         User updatedUser = userRepository.save(user);
         logger.info("사용자 정보 수정 완료: userId={}", updatedUser.getUserId());
@@ -214,8 +194,7 @@ public class UserService {
                 favoriteStore.getFavStoreId(),
                 favoriteStore.getStoreId(),
                 storeName,
-                favoriteStore.getUserId(),
-                favoriteStore.getCreatedAt()
+                favoriteStore.getUserId()
             );
             favoriteStoreDtos.add(dto);
         }
@@ -399,7 +378,7 @@ public class UserService {
             store.put("categoryCode", "UNKNOWN");
             store.put("categoryName", "알 수 없음");
             store.put("seatNum", 0);
-            store.put("favoriteCreatedAt", fs.getCreatedAt());
+
             result.add(store);
         }
         
@@ -433,8 +412,7 @@ public class UserService {
             dashboard.put("userName", user.getUserName());
             dashboard.put("phoneNumber", user.getPhoneNumber());
             dashboard.put("userLocation", user.getUserLocation());
-            dashboard.put("isActive", user.isActive());
-            dashboard.put("userCreatedAt", user.getCreatedAt());
+
             dashboard.put("favoriteCount", favoriteStoreRepository.countByUserId(userId));
             dashboard.put("reviewCount", 0); // Store Service 연동 필요
             dashboard.put("avgReviewScore", 0.0);
@@ -468,8 +446,7 @@ public class UserService {
             savedFavoriteStore.getFavStoreId(),
             savedFavoriteStore.getStoreId(),
             storeName,
-            savedFavoriteStore.getUserId(),
-            savedFavoriteStore.getCreatedAt()
+            savedFavoriteStore.getUserId()
         );
         
         logger.info("즐겨찾기 가게 추가 완료: userId={}, storeId={}", userId, storeId);
@@ -543,9 +520,7 @@ public class UserService {
                 userInfo.put("userName", user.getUserName());
                 userInfo.put("phoneNumber", user.getPhoneNumber());
                 userInfo.put("userLocation", user.getUserLocation());
-                userInfo.put("isActive", user.isActive());
-                userInfo.put("createdAt", user.getCreatedAt());
-                userInfo.put("updatedAt", user.getUpdatedAt());
+
             }
             myPage.put("userInfo", userInfo);
             
@@ -585,7 +560,7 @@ public class UserService {
                 Map<String, Object> fav = new HashMap<>();
                 fav.put("storeId", fs.getStoreId());
                 fav.put("storeName", fs.getStoreName() != null ? fs.getStoreName() : getDummyStoreName(fs.getStoreId()));
-                fav.put("createdAt", fs.getCreatedAt());
+
                 return fav;
             })
             .collect(Collectors.toList());
@@ -675,9 +650,7 @@ public class UserService {
             userInfo.put("userName", user.getUserName());
             userInfo.put("phoneNumber", user.getPhoneNumber());
             userInfo.put("userLocation", user.getUserLocation());
-            userInfo.put("isActive", user.isActive());
-            userInfo.put("createdAt", user.getCreatedAt());
-            userInfo.put("updatedAt", user.getUpdatedAt());
+
         }
         myPage.put("userInfo", userInfo);
         

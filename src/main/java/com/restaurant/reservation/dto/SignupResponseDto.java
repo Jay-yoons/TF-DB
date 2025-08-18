@@ -1,22 +1,18 @@
 package com.restaurant.reservation.dto;
 
-import java.time.LocalDateTime;
-
 public class SignupResponseDto {
     private String userId;
     private String userName;
     private String phoneNumber;
     private String userLocation;
-    private LocalDateTime createdAt;
     
     public SignupResponseDto() {}
     
-    public SignupResponseDto(String userId, String userName, String phoneNumber, String userLocation, LocalDateTime createdAt) {
+    public SignupResponseDto(String userId, String userName, String phoneNumber, String userLocation) {
         this.userId = userId;
         this.userName = userName;
         this.phoneNumber = phoneNumber;
         this.userLocation = userLocation;
-        this.createdAt = createdAt;
     }
     
     public String getUserId() {
@@ -49,13 +45,5 @@ public class SignupResponseDto {
     
     public void setUserLocation(String userLocation) {
         this.userLocation = userLocation;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

@@ -1,11 +1,6 @@
 package com.restaurant.reservation.entity;
 
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 /**
  * 사용자 엔티티 클래스
@@ -18,23 +13,18 @@ import java.time.LocalDateTime;
  * - userName: 사용자 이름
  * - phoneNumber: 전화번호 (고유값)
  * - userLocation: 사용자 주소
- * - password: 암호화된 비밀번호
- * - isActive: 계정 활성화 상태
- * - createdAt: 생성일시 (자동 생성)
- * - updatedAt: 수정일시 (자동 업데이트)
  * 
  * @author FOG Team
- * @version 1.0
- * @since 2024-01-15
+ * @version 3.0
+ * @since 2025-08-18
  */
 @Entity
 @Table(name = "USERS") // 데이터베이스 테이블명 지정
-@EntityListeners(AuditingEntityListener.class) // 생성일시/수정일시 자동 관리
 public class User {
     
     /**
      * 사용자 고유 ID (기본키)
-     * 최대 15자까지 저장 가능
+     * 최대 50자까지 저장 가능
      */
     @Id
     @Column(name = "USER_ID", length = 50)
@@ -61,45 +51,14 @@ public class User {
     @Column(name = "USER_LOCATION", length = 50)
     private String userLocation;
     
-    /**
-     * 암호화된 비밀번호
-     * 필수 입력 항목, 최대 255자 (암호화로 인한 길이 증가)
-     */
-    @Column(name = "PASSWORD", nullable = false, length = 255)
-    private String password;
-    
-    /**
-     * 계정 활성화 상태
-     * 기본값: true (활성화)
-     */
-    @Column(name = "IS_ACTIVE", nullable = false)
-    private boolean isActive = true;
-    
-    /**
-     * 계정 생성일시
-     * 자동 생성되며 수정 불가
-     */
-    @CreatedDate
-    @Column(name = "CREATED_AT", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    /**
-     * 계정 수정일시
-     * 자동 업데이트
-     */
-    @LastModifiedDate
-    @Column(name = "UPDATED_AT")
-    private LocalDateTime updatedAt;
-    
     // Constructors
     public User() {}
     
-    public User(String userId, String userName, String phoneNumber, String userLocation, String password) {
+    public User(String userId, String userName, String phoneNumber, String userLocation) {
         this.userId = userId;
         this.userName = userName;
         this.phoneNumber = phoneNumber;
         this.userLocation = userLocation;
-        this.password = password;
     }
     
     // Getters and Setters
@@ -133,37 +92,5 @@ public class User {
     
     public void setUserLocation(String userLocation) {
         this.userLocation = userLocation;
-    }
-    
-    public String getPassword() {
-        return password;
-    }
-    
-    public void setPassword(String password) {
-        this.password = password;
-    }
-    
-    public boolean isActive() {
-        return isActive;
-    }
-    
-    public void setActive(boolean active) {
-        isActive = active;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 } 

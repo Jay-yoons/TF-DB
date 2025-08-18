@@ -1,6 +1,8 @@
 package com.restaurant.reservation.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -22,14 +24,16 @@ import java.time.LocalDateTime;
  * - (userId, storeId) 복합 유니크 제약조건
  * 
  * @author FOG Team
- * @version 1.0
- * @since 2024-01-15
+ * @version 2.0
+ * @since 2025-08-18
  */
 @Entity
 @Table(name = "FAV_STORE", uniqueConstraints = {
     @UniqueConstraint(name = "fav_store_un", columnNames = {"USER_ID", "STORE_ID2"})
 })
 @EntityListeners(AuditingEntityListener.class)
+@Getter
+@Setter
 public class FavoriteStore {
     
     /**
@@ -82,46 +86,5 @@ public class FavoriteStore {
         this.userId = userId;
         this.storeId = storeId;
         this.storeName = storeName;
-    }
-    
-    // Getters and Setters
-    public Long getFavStoreId() {
-        return favStoreId;
-    }
-    
-    public void setFavStoreId(Long favStoreId) {
-        this.favStoreId = favStoreId;
-    }
-    
-    public String getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-    
-    public String getStoreId() {
-        return storeId;
-    }
-    
-    public void setStoreId(String storeId) {
-        this.storeId = storeId;
-    }
-    
-    public String getStoreName() {
-        return storeName;
-    }
-    
-    public void setStoreName(String storeName) {
-        this.storeName = storeName;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

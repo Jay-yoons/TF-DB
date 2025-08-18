@@ -1,229 +1,197 @@
-# 🚀 Team-FOG User Service 설정 가이드
+# 🛠️ 개발 환경 설정 가이드
 
-## 📋 개요
+FOG User Service의 개발 환경을 설정하는 방법을 안내합니다.
 
-이 가이드는 Team-FOG User Service를 로컬에서 실행하기 위한 설정 방법을 설명합니다.
+## 📋 필수 요구사항
 
-## 📁 설정 파일 목록
+- **Java**: 17 이상
+- **Gradle**: 8.x 이상
+- **IDE**: IntelliJ IDEA, Eclipse, VS Code 등
+- **Database**: Oracle Database (EC2)
 
-### 1. **application.yml** - 메인 설정 파일
-- 모든 환경에서 공통으로 사용하는 기본 설정
-- 프로파일별 설정 포함 (dev, test, prod)
-
-### 2. **application-dev.yml** - 개발 환경 설정
-- 로컬 개발 시 사용
-- H2 Database, 더미 Cognito 모드
-
-### 3. **application-prod.yml** - 프로덕션 환경 설정
-- AWS ECS 배포 시 사용
-- Oracle Database, 실제 Cognito
-
-### 4. **env-example.txt** - 환경변수 예시
-- 환경변수 설정 참고용
-
-## 🔧 설정 방법
-
-### 1단계: 설정 파일 복사
+## 🚀 1단계: 프로젝트 클론
 
 ```bash
-# 프로젝트 루트 디렉토리에서
-cp application.yml src/main/resources/
-cp application-dev.yml src/main/resources/
-cp application-prod.yml src/main/resources/
+git clone https://github.com/Jay-yoons/Team-FOG.git
+cd Team-FOG
 ```
 
-### 2단계: 환경변수 설정
+## 🔧 2단계: 환경 설정
 
-```bash
-# env-example.txt를 참고하여 .env 파일 생성
-cp env-example.txt .env
+### application.yml 설정
 
-# .env 파일을 편집하여 실제 값으로 수정
-# 예시:
-SPRING_PROFILES_ACTIVE=dev
-AWS_COGNITO_DUMMY_MODE=true
-```
+`src/main/resources/application.yml` 파일을 다음과 같이 설정합니다:
 
-### 3단계: 애플리케이션 실행
-
-```bash
-# 개발 환경으로 실행
-./gradlew bootRun --args='--spring.profiles.active=dev'
-
-# 또는 환경변수로 설정
-export SPRING_PROFILES_ACTIVE=dev
-./gradlew bootRun
-```
-
-## 🎯 환경별 설정
-
-### 🛠️ **개발 환경 (dev)**
-
-**특징:**
-- H2 인메모리 데이터베이스 사용
-- AWS Cognito 더미 모드
-- 상세한 로깅 활성화
-- H2 Console 접근 가능
-
-**설정:**
-```yaml
-spring:
-  profiles:
-    active: dev
-```
-
-**접속 정보:**
-- 서버: http://localhost:8082
-- H2 Console: http://localhost:8082/h2-console
-- JDBC URL: jdbc:h2:mem:userdb
-- Username: sa
-- Password: (비어있음)
-
-### 🧪 **테스트 환경 (test)**
-
-**특징:**
-- H2 인메모리 데이터베이스
-- 테스트용 로깅 설정
-- 더미 Cognito 모드
-
-**설정:**
-```yaml
-spring:
-  profiles:
-    active: test
-```
-
-### 🚀 **프로덕션 환경 (prod)**
-
-**특징:**
-- Oracle Database 사용
-- 실제 AWS Cognito 연동
-- 보안 강화 설정
-- 성능 최적화
-
-**설정:**
 ```yaml
 spring:
   profiles:
     active: prod
-```
-
-## 🔐 AWS Cognito 설정
-
-### 개발용 더미 모드
-```yaml
-aws:
-  cognito:
-    dummy-mode: true
-```
-
-**더미 로그인 테스트:**
-```bash
-curl -X GET "http://localhost:8082/api/users/login/dummy?state=test-state"
-```
-
-### 프로덕션용 실제 Cognito
-```yaml
-aws:
-  cognito:
-    dummy-mode: false
-    user-pool-id: ${COGNITO_USER_POOL_ID}
-    client-id: ${COGNITO_CLIENT_ID}
-    client-secret: ${COGNITO_CLIENT_SECRET}
-    domain: ${COGNITO_DOMAIN}
-```
-
-## 🗄️ 데이터베이스 설정
-
-### 개발용 H2 Database
-```yaml
-spring:
+  
   datasource:
-    url: jdbc:h2:mem:userdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 
-```
-
-### 프로덕션용 Oracle Database
-```yaml
-spring:
-  datasource:
-    url: jdbc:oracle:thin:@${ORACLE_HOST}:${ORACLE_PORT}/${ORACLE_SERVICE_NAME}
+    url: jdbc:oracle:thin:@your-oracle-host:1521:XE
+    username: your_username
+    password: your_password
     driver-class-name: oracle.jdbc.OracleDriver
-    username: ${ORACLE_USERNAME}
-    password: ${ORACLE_PASSWORD}
-```
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+        format_sql: false
 
-## 🔄 MSA 서비스 연동
+aws:
+  cognito:
+    user-pool-id: ap-northeast-2_xxxxx
+    client-id: xxxxxxxxxx
+    client-secret: xxxxxxxxxx
+    domain: https://xxxxx.auth.ap-northeast-2.amazoncognito.com
+    region: ap-northeast-2
+    jwks-url: https://cognito-idp.ap-northeast-2.amazonaws.com/xxxxx/.well-known/jwks.json
+    token-endpoint: https://xxxxx.auth.ap-northeast-2.amazoncognito.com/oauth2/token
+    authorize-endpoint: https://xxxxx.auth.ap-northeast-2.amazoncognito.com/oauth2/authorize
+    logout-endpoint: https://xxxxx.auth.ap-northeast-2.amazoncognito.com/logout
+    redirect-uri: http://localhost:3000/callback
+    scope: openid profile email phone
+    response-type: code
+    grant-type: authorization_code
 
-### 로컬 개발 환경
-```yaml
 msa:
   service-urls:
     store-service: http://localhost:8081
     reservation-service: http://localhost:8080
+
+server:
+  port: 8082
 ```
 
-### 프로덕션 환경
-```yaml
-msa:
-  service-urls:
-    store-service: http://store-service.internal:8081
-    reservation-service: http://reservation-service.internal:8080
+## 🗄️ 3단계: 데이터베이스 설정
+
+### Oracle Database 테이블 생성
+
+```sql
+-- USERS 테이블
+CREATE TABLE USERS (
+    USER_ID VARCHAR2(50) PRIMARY KEY,
+    USER_NAME VARCHAR2(20) NOT NULL,
+    PHONE_NUMBER VARCHAR2(20) NOT NULL UNIQUE,
+    USER_LOCATION VARCHAR2(50)
+);
+
+-- 인덱스 생성
+CREATE INDEX IDX_USERS_PHONE_NUMBER ON USERS(PHONE_NUMBER);
+
+-- FAV_STORE 테이블
+CREATE TABLE FAV_STORE (
+    FAV_STORE_ID NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    USER_ID VARCHAR2(15) NOT NULL,
+    STORE_ID2 VARCHAR2(20) NOT NULL,
+    STORE_NAME VARCHAR2(100),
+    CONSTRAINT UK_FAV_STORE_USER_STORE UNIQUE (USER_ID, STORE_ID2)
+);
+
+-- 인덱스 생성
+CREATE INDEX IDX_FAV_STORE_USER_ID ON FAV_STORE(USER_ID);
+CREATE INDEX IDX_FAV_STORE_STORE_ID ON FAV_STORE(STORE_ID2);
+
+-- 외래키 제약조건
+ALTER TABLE FAV_STORE 
+ADD CONSTRAINT FK_FAV_STORE_USER_ID 
+FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID);
 ```
 
-## 🧪 테스트 방법
+## 🏗️ 4단계: 프로젝트 빌드
 
-### 1. 서비스 헬스체크
 ```bash
-curl -X GET "http://localhost:8082/api/users/health"
+# Windows
+gradlew.bat clean build
+
+# Linux/Mac
+./gradlew clean build
 ```
 
-### 2. 더미 로그인
+## 🚀 5단계: 애플리케이션 실행
+
 ```bash
-curl -X GET "http://localhost:8082/api/users/login/dummy?state=test-state"
+# Windows
+gradlew.bat bootRun
+
+# Linux/Mac
+./gradlew bootRun
 ```
 
-### 3. 더미 데이터 생성
+애플리케이션이 성공적으로 실행되면 다음 URL에서 접근할 수 있습니다:
+- **애플리케이션**: http://localhost:8082
+- **헬스체크**: http://localhost:8082/api/users/health
+
+## 🧪 6단계: 테스트
+
+### API 테스트
+
 ```bash
-curl -X POST "http://localhost:8082/api/users/dummy/data"
+# 헬스체크
+curl http://localhost:8082/api/users/health
+
+# Cognito 로그인 URL 생성
+curl http://localhost:8082/api/users/login/url
 ```
 
-### 4. 인증된 API 테스트
+### JUnit 테스트
+
 ```bash
-# 토큰으로 API 호출
-curl -H "Authorization: Bearer dummy-access-token-1234567890" \
-  http://localhost:8082/api/users/me
+# Windows
+gradlew.bat test
+
+# Linux/Mac
+./gradlew test
 ```
 
-## 🚨 문제 해결
+## 🔍 문제 해결
 
 ### 1. 포트 충돌
 ```bash
-# 8082 포트 사용 중인 프로세스 확인
+# Windows
 netstat -ano | findstr :8082
+taskkill /f /pid <PID>
 
-# 프로세스 종료
-taskkill /f /im java.exe
+# Linux/Mac
+lsof -i :8082
+kill -9 <PID>
 ```
 
 ### 2. 데이터베이스 연결 실패
-- H2 Console 접속 확인: http://localhost:8082/h2-console
-- Oracle DB 연결 정보 확인
-- 네트워크 설정 확인
+- Oracle Database가 실행 중인지 확인
+- 연결 정보(호스트, 포트, 사용자명, 비밀번호) 확인
+- 방화벽 설정 확인
 
-### 3. Cognito 연결 실패
-- 더미 모드 활성화 확인
-- 환경변수 설정 확인
-- AWS 자격 증명 확인
+### 3. 빌드 실패
+```bash
+# 캐시 삭제 후 재빌드
+gradlew.bat clean build --refresh-dependencies
+```
 
-## 📞 지원
+### 4. 의존성 문제
+```bash
+# 의존성 트리 확인
+gradlew.bat dependencies
+```
 
-- **담당자**: User Service 담당자
-- **이메일**: user-service@team-fog.com
-- **슬랙**: #user-service
+## 📚 추가 리소스
+
+- **[TEST_GUIDE.md](TEST_GUIDE.md)**: 상세한 테스트 가이드
+- **[PRODUCTION_README.md](PRODUCTION_README.md)**: 프로덕션 배포 가이드
+- **[README.md](README.md)**: 프로젝트 개요
+
+## 🤝 지원
+
+문제가 발생하면 다음 방법으로 지원을 받을 수 있습니다:
+
+1. **로그 확인**: `logs/` 폴더의 로그 파일 확인
+2. **팀 채널**: #user-service 슬랙 채널
+3. **이슈 등록**: GitHub Issues
 
 ---
 
-이 가이드를 따라 User Service를 성공적으로 설정하고 실행할 수 있습니다! 🚀
+**FOG Team** | 2025 

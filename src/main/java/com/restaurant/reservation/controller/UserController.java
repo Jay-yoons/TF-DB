@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * 
  * @author Team-FOG User Service
  * @version 2.0
- * @since 2024-01-15
+ * @since 2025-08-18
  */
 @RestController
 @RequestMapping("/api/users")
@@ -218,13 +218,12 @@ public class UserController {
                 signupRequest.getUserId(),
                 signupRequest.getUserName(),
                 signupRequest.getPhoneNumber(),
-                signupRequest.getUserLocation(),
-                signupRequest.getPassword()
+                signupRequest.getUserLocation()
             );
             
             SignupResponseDto signupResponse = new SignupResponseDto(
                 user.getUserId(), user.getUserName(), user.getPhoneNumber(),
-                user.getUserLocation(), user.getCreatedAt()
+                user.getUserLocation()
             );
             
             logger.info("회원가입 완료: userId={}", signupResponse.getUserId());
@@ -272,7 +271,7 @@ public class UserController {
             User updatedUser = userService.updateUserInfo(userId, updateRequest);
             UserInfoDto userInfo = new UserInfoDto(
                 updatedUser.getUserId(), updatedUser.getUserName(), updatedUser.getPhoneNumber(),
-                updatedUser.getUserLocation(), updatedUser.isActive(), updatedUser.getCreatedAt(), updatedUser.getUpdatedAt()
+                updatedUser.getUserLocation()
             );
 
             logger.info("사용자 정보 수정 완료: userId={}", userId);

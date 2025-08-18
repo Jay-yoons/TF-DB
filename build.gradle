@@ -63,6 +63,10 @@ dependencies {
     // Spring Data JPA (데이터 접근)
     implementation 'org.springframework.data:spring-data-jpa'
 
+    // Lombok (코드 생성 라이브러리)
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
     // =============================================================================
     // AWS Cognito 인증 시스템
     // =============================================================================

@@ -38,10 +38,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                     return createNewUserFromCognito(userId);
                 });
         
-        if (!user.isActive()) {
-            logger.warn("비활성화된 사용자: userId={}", userId);
-            throw new UsernameNotFoundException("비활성화된 사용자입니다: " + userId);
-        }
+
         
         // Spring Security UserDetails 객체 생성
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
@@ -51,7 +48,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)
-                .disabled(!user.isActive())
+                .disabled(false)
                 .build();
         
         logger.debug("사용자 정보 로드 완료: userId={}", userId);
@@ -67,8 +64,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         newUser.setUserName("Cognito User");
         newUser.setPhoneNumber("000-0000-0000"); // 임시 전화번호
         newUser.setUserLocation("Unknown");
-        newUser.setActive(true);
-        newUser.setPassword("N/A"); // Cognito 사용자는 로컬 패스워드가 없음
+
+
         
         User savedUser = userRepository.save(newUser);
         logger.info("새로운 Cognito 사용자 생성 완료: userId={}", userId);

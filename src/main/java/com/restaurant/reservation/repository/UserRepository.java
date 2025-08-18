@@ -11,15 +11,11 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
     
-    // 로그인용 - userId와 password만 조회
-    @Query("SELECT u.userId, u.password FROM User u WHERE u.userId = :userId")
-    Optional<Object[]> findUserIdAndPasswordByUserId(@Param("userId") String userId);
-    
     // 회원가입용 - userName, phoneNumber만 조회
     @Query("SELECT u.userName, u.phoneNumber FROM User u WHERE u.userName = :userName OR u.phoneNumber = :phoneNumber")
     Optional<Object[]> findUserNameAndPhoneNumberByUserNameOrPhoneNumber(@Param("userName") String userName, @Param("phoneNumber") String phoneNumber);
     
-    // 사용자 정보 조회용 - password 제외
+    // 사용자 정보 조회용
     @Query("SELECT u.userId, u.userName, u.phoneNumber, u.userLocation, u.createdAt FROM User u WHERE u.userId = :userId")
     Optional<Object[]> findUserInfoByUserId(@Param("userId") String userId);
     

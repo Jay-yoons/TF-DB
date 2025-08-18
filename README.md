@@ -1,350 +1,153 @@
-# 🏪 Team-FOG User Service
+# 🍽️ FOG Restaurant Reservation System - User Service
 
-## 📋 개요
+FOG 팀의 식당 예약 시스템 중 **User Service**입니다. AWS Cognito를 통한 사용자 인증과 사용자 정보 관리를 담당합니다.
 
-Team-FOG 프로젝트의 **User Service**는 사용자 인증, 회원가입, 마이페이지 기능을 담당하는 마이크로서비스입니다.
+## 🚀 주요 기능
 
-- **담당자**: User Service 담당자
-- **포트**: 8082
-- **기술 스택**: Spring Boot 3.5.4, Java 17, Oracle DB (PDB + Standby), AWS Cognito
-- **인증 방식**: AWS Cognito JWT 토큰 기반
+- **AWS Cognito 인증**: OAuth2 Authorization Code Flow를 통한 안전한 사용자 인증
+- **사용자 관리**: 회원가입, 정보 수정, 프로필 관리
+- **즐겨찾기 관리**: 가게 즐겨찾기 추가/삭제/조회
+- **마이페이지**: 통합 사용자 대시보드
+- **MSA 연동**: Store Service, Reservation Service와의 연동
+
+## 🛠️ 기술 스택
+
+- **Backend**: Spring Boot 3.x, Spring Security, JPA/Hibernate
+- **Database**: Oracle Database (EC2)
+- **Authentication**: AWS Cognito
+- **Container**: Docker
+- **Deployment**: AWS ECS Fargate
+- **Load Balancer**: AWS ALB
+
+## 📋 프로젝트 구조
+
+```
+src/main/java/com/restaurant/reservation/
+├── config/          # 설정 클래스들
+├── controller/      # REST API 컨트롤러
+├── dto/            # 데이터 전송 객체
+├── entity/         # JPA 엔티티
+├── repository/     # 데이터 접근 계층
+└── service/        # 비즈니스 로직
+```
 
 ## 🚀 빠른 시작
 
-### 1. 개발 환경 설정
-
+### 1. 프로젝트 빌드
 ```bash
-# 프로젝트 클론
-git clone https://github.com/Jay-yoons/Team-FOG.git
-cd Team-FOG
+# Windows
+gradlew.bat clean build
 
-# 애플리케이션 실행
+# Linux/Mac
+./gradlew clean build
+```
+
+### 2. 애플리케이션 실행
+```bash
+# Windows
+gradlew.bat bootRun
+
+# Linux/Mac
 ./gradlew bootRun
 ```
 
-### 2. API 테스트
+### 3. 테스트
+```bash
+# Windows
+gradlew.bat test
 
-REST Client 확장프로그램을 사용하여 `api-tests-with-token.http` 파일로 API를 테스트할 수 있습니다.
+# Linux/Mac
+./gradlew test
+```
+
+## 📖 상세 가이드
+
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)**: 개발 환경 설정 가이드
+- **[TEST_GUIDE.md](TEST_GUIDE.md)**: 테스트 및 API 테스트 가이드
+- **[PRODUCTION_README.md](PRODUCTION_README.md)**: 프로덕션 배포 가이드
+
+## 🔧 설정
+
+### 필수 환경 변수
+```yaml
+# AWS Cognito 설정
+aws:
+  cognito:
+    user-pool-id: ap-northeast-2_xxxxx
+    client-id: xxxxxxxxxx
+    client-secret: xxxxxxxxxx
+    domain: https://xxxxx.auth.ap-northeast-2.amazoncognito.com
+    region: ap-northeast-2
+    jwks-url: https://cognito-idp.ap-northeast-2.amazonaws.com/xxxxx/.well-known/jwks.json
+
+# Oracle Database 설정
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521:XE
+    username: your_username
+    password: your_password
+```
+
+## 📡 API 엔드포인트
+
+### 인증 관련
+- `GET /api/users/login/url` - Cognito 로그인 URL 생성
+- `POST /api/users/login/callback` - Cognito 콜백 처리
+- `POST /api/users/logout` - 로그아웃
+
+### 사용자 관리
+- `POST /api/users` - 회원가입
+- `GET /api/users/me` - 마이페이지 조회
+- `PUT /api/users/me` - 사용자 정보 수정
+
+### 즐겨찾기 관리
+- `GET /api/users/me/favorites` - 즐겨찾기 목록 조회
+- `POST /api/users/me/favorites` - 즐겨찾기 추가
+- `DELETE /api/users/me/favorites/{storeId}` - 즐겨찾기 삭제
+
+## 🐳 Docker 배포
 
 ```bash
-# 더미 로그인으로 토큰 받기
-curl -X GET "http://localhost:8082/api/users/login/dummy?state=test-state"
+# Docker 이미지 빌드
+docker build -t fog-user-service .
 
-# 토큰으로 API 호출
-curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8082/api/users/me
-```
-
-## 🔐 인증 시스템
-
-### AWS Cognito 설정
-
-현재 **더미 모드**로 설정되어 있어 실제 AWS Cognito 없이도 개발 및 테스트가 가능합니다.
-
-```yaml
-# application.yml
-aws:
-  cognito:
-    dummy-mode: true  # 개발용 더미 모드
-```
-
-### 실제 서비스 전환 시
-
-```yaml
-aws:
-  cognito:
-    dummy-mode: false  # 실제 Cognito 사용
-    user-pool-id: ${COGNITO_USER_POOL_ID}
-    client-id: ${COGNITO_CLIENT_ID}
-    client-secret: ${COGNITO_CLIENT_SECRET}
+# 컨테이너 실행
+docker run -p 8080:8080 fog-user-service
 ```
 
 ## 📊 데이터베이스 스키마
 
-### Users 테이블 (Oracle PDB)
+### USERS 테이블
 ```sql
--- PDB: TEAMFOG
 CREATE TABLE USERS (
-    USER_ID VARCHAR2(15) PRIMARY KEY,
+    USER_ID VARCHAR2(50) PRIMARY KEY,
     USER_NAME VARCHAR2(20) NOT NULL,
-    PHONE_NUMBER VARCHAR2(20) UNIQUE NOT NULL,
-    USER_LOCATION VARCHAR2(50),
-    PASSWORD VARCHAR2(255) NOT NULL,
-    IS_ACTIVE NUMBER(1) DEFAULT 1 NOT NULL,
-    CREATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
-    UPDATED_AT TIMESTAMP
+    PHONE_NUMBER VARCHAR2(20) NOT NULL UNIQUE,
+    USER_LOCATION VARCHAR2(50)
 );
 ```
 
-### Favorite Stores 테이블 (Oracle PDB)
+### FAV_STORE 테이블
 ```sql
--- PDB: TEAMFOG
 CREATE TABLE FAV_STORE (
-    FAV_STORE_ID NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    FAV_STORE_ID NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     USER_ID VARCHAR2(15) NOT NULL,
     STORE_ID2 VARCHAR2(20) NOT NULL,
-    CREATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
-    CONSTRAINT fav_store_un UNIQUE (USER_ID, STORE_ID2)
+    STORE_NAME VARCHAR2(100),
+    CONSTRAINT UK_FAV_STORE_USER_STORE UNIQUE (USER_ID, STORE_ID2)
 );
 ```
 
-### 데이터베이스 환경 (Oracle PDB + Standby)
-- **PrimaryDB**: 쓰기 작업 및 읽기 작업
-- **StandbyDB**: 읽기 전용 작업 (리포지션)
-- **PDB**: TEAMFOG (Pluggable Database)
+## 🤝 팀 정보
 
-## 🔌 API 엔드포인트
+- **팀명**: FOG (Food Order Group)
+- **프로젝트**: 식당 예약 시스템
+- **서비스**: User Service (사용자 관리 서비스)
 
-### 인증 관련 API
+## 📝 라이선스
 
-| 메서드 | 엔드포인트 | 설명 | 인증 필요 |
-|--------|------------|------|-----------|
-| GET | `/api/users/login/url` | Cognito 로그인 URL 생성 | ❌ |
-| GET | `/api/users/login/dummy` | 더미 로그인 (개발용) | ❌ |
-| POST | `/api/users/login/callback` | Cognito 콜백 처리 | ❌ |
-| POST | `/api/users/logout` | 로그아웃 | ✅ |
+이 프로젝트는 FOG 팀의 내부 프로젝트입니다.
 
-### 사용자 관리 API
+---
 
-| 메서드 | 엔드포인트 | 설명 | 인증 필요 |
-|--------|------------|------|-----------|
-| POST | `/api/users` | 회원가입 | ❌ |
-| GET | `/api/users/me` | 내 정보 조회 | ✅ |
-| PUT | `/api/users/me` | 사용자 정보 수정 | ✅ |
-| GET | `/api/users/count` | 전체 사용자 수 조회 | ❌ |
-
-### 마이페이지 API
-
-| 메서드 | 엔드포인트 | 설명 | 인증 필요 |
-|--------|------------|------|-----------|
-| GET | `/api/users/me/reviews` | 내가 작성한 리뷰 목록 | ✅ |
-| GET | `/api/users/me/reviews/{reviewId}/store-info` | 리뷰 관련 가게 정보 | ✅ |
-| GET | `/api/users/me/favorites` | 내 즐겨찾기 가게 목록 | ✅ |
-| POST | `/api/users/me/favorites` | 즐겨찾기 가게 추가 | ✅ |
-| DELETE | `/api/users/me/favorites/{storeId}` | 즐겨찾기 가게 삭제 | ✅ |
-| GET | `/api/users/me/favorites/{storeId}/check` | 즐겨찾기 상태 확인 | ✅ |
-| GET | `/api/users/me/favorites/count` | 즐겨찾기 가게 개수 | ✅ |
-
-### 개발용 API
-
-| 메서드 | 엔드포인트 | 설명 | 인증 필요 |
-|--------|------------|------|-----------|
-| POST | `/api/users/dummy/data` | 더미 데이터 생성 | ❌ |
-| GET | `/api/users/health` | 서비스 헬스체크 | ❌ |
-
-## 🔄 MSA 연동
-
-### Store Service 연동
-
-User Service는 Store Service와 연동하여 리뷰 데이터를 가져옵니다.
-
-```java
-// Store Service에서 리뷰 데이터 가져오기
-List<ReviewDto> reviews = storeServiceIntegration.getUserReviews(userId);
-
-// Store Service에서 가게 정보 가져오기
-Map<String, Object> storeInfo = storeServiceIntegration.getStoreInfoForReview(reviewId);
-```
-
-### 서비스 URL 설정
-
-```yaml
-# application.yml
-msa:
-  service-urls:
-    store-service: http://localhost:8081  # Store Service URL
-    reservation-service: http://localhost:8080  # Reservation Service URL
-```
-
-## 🧪 테스트
-
-### 1. 더미 로그인 테스트
-
-```bash
-# 더미 로그인
-curl -X GET "http://localhost:8082/api/users/login/dummy?state=test-state"
-```
-
-응답 예시:
-```json
-{
-  "success": true,
-  "accessToken": "dummy-access-token-1234567890",
-  "idToken": "dummy-id-token-1234567890",
-  "refreshToken": "dummy-refresh-token-1234567890",
-  "tokenType": "Bearer",
-  "expiresIn": 3600,
-  "userInfo": {
-    "sub": "dummy4879",
-    "name": "더미 사용자",
-    "email": "dummy@example.com"
-  },
-  "message": "더미 로그인 성공"
-}
-```
-
-### 2. 인증된 API 테스트
-
-```bash
-# 내 정보 조회
-curl -H "Authorization: Bearer dummy-access-token-1234567890" \
-  http://localhost:8082/api/users/me
-```
-
-응답 예시:
-```json
-{
-  "userId": "dummy4879",
-  "userName": "더미 사용자",
-  "phoneNumber": "010-1234-5678",
-  "userLocation": "서울시 강남구",
-  "createdAt": "2025-08-14T10:14:10.085936",
-  "updatedAt": "2025-08-14T10:14:10.085936",
-  "active": true
-}
-```
-
-### 3. 더미 데이터 생성
-
-```bash
-# 더미 사용자 및 즐겨찾기 데이터 생성
-curl -X POST http://localhost:8082/api/users/dummy/data
-```
-
-## 🔧 개발 환경
-
-### 필수 요구사항
-
-- Java 17
-- Gradle 8.x
-- H2 Database (개발용)
-- Oracle Database (프로덕션용)
-
-### 주요 의존성
-
-```gradle
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'com.auth0:java-jwt:4.4.0'
-    implementation 'software.amazon.awssdk:cognitoidentityprovider:2.21.0'
-    implementation 'com.oracle.database.jdbc:ojdbc11:23.3.0.23.09'  // Oracle DB
-}
-```
-
-### 환경변수
-
-```bash
-# =============================================================================
-# AWS Cognito 설정
-# =============================================================================
-COGNITO_USER_POOL_ID=ap-northeast-2_xxxxxxxxx
-COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxx
-COGNITO_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxx
-COGNITO_DOMAIN=team-fog.auth.ap-northeast-2.amazoncognito.com
-
-# =============================================================================
-# Oracle Database 설정 (PDB + Standby)
-# =============================================================================
-# PrimaryDB
-ORACLE_HOST=primarydb.internal
-ORACLE_PORT=1521
-ORACLE_SERVICE_NAME=TEAMFOG
-ORACLE_USERNAME=user_service
-ORACLE_PASSWORD=xxxxxxxxxxxx
-
-# StandbyDB (Read-Only)
-ORACLE_STANDBY_HOST=standbydb.internal
-ORACLE_STANDBY_PORT=1521
-ORACLE_STANDBY_SERVICE_NAME=TEAMFOG
-ORACLE_STANDBY_USERNAME=user_service_readonly
-ORACLE_STANDBY_PASSWORD=xxxxxxxxxxxx
-
-# =============================================================================
-# MSA 서비스 URL 설정
-# =============================================================================
-RESERVATION_SERVICE_URL=http://reservation-service.internal:8080
-STORE_SERVICE_URL=http://store-service.internal:8081
-FRONTEND_URL=https://team-fog-frontend.com
-```
-
-## 📁 프로젝트 구조
-
-```
-src/main/java/com/restaurant/reservation/
-├── UserServiceApplication.java          # 메인 애플리케이션
-├── controller/
-│   └── UserController.java              # API 컨트롤러
-├── service/
-│   ├── UserService.java                 # 사용자 비즈니스 로직
-│   ├── AwsCognitoService.java           # Cognito 연동 서비스
-│   └── StoreServiceIntegration.java     # Store Service 연동
-├── config/
-│   ├── SecurityConfig.java              # Spring Security 설정
-│   ├── AwsCognitoConfig.java            # Cognito 설정
-│   ├── CognitoAuthenticationFilter.java # JWT 인증 필터
-│   └── MsaConfig.java                   # MSA 설정
-├── entity/
-│   ├── User.java                        # 사용자 엔티티
-│   └── FavoriteStore.java               # 즐겨찾기 엔티티
-├── repository/
-│   ├── UserRepository.java              # 사용자 리포지토리
-│   └── FavoriteStoreRepository.java     # 즐겨찾기 리포지토리
-├── dto/
-│   ├── UserInfoDto.java                 # 사용자 정보 DTO
-│   ├── ReviewDto.java                   # 리뷰 DTO
-│   └── FavoriteStoreDto.java            # 즐겨찾기 DTO
-└── exception/
-    ├── ServiceConnectionException.java   # 서비스 연결 예외
-    └── ServiceHttpException.java         # HTTP 예외
-```
-
-## 🚨 문제 해결
-
-### 1. 포트 충돌
-
-```bash
-# 8082 포트 사용 중인 프로세스 확인
-netstat -ano | findstr :8082
-
-# 프로세스 종료
-taskkill /f /im java.exe
-```
-
-### 2. 데이터베이스 연결 실패
-
-```bash
-# H2 콘솔 접속 (개발용)
-http://localhost:8082/h2-console
-JDBC URL: jdbc:h2:mem:userdb
-Username: sa
-Password: (비어있음)
-```
-
-### 3. 인증 실패
-
-- 토큰이 올바른지 확인
-- 토큰 만료 시간 확인
-- Authorization 헤더 형식 확인: `Bearer YOUR_TOKEN`
-
-## 📞 연락처
-
-- **담당자**: User Service 담당자
-- **이메일**: user-service@team-fog.com
-- **슬랙**: #user-service
-
-## 📚 문서
-
-### 📖 **전체 문서 목록**
-- **[📚 문서 목록](docs/README.md)** - 모든 문서의 인덱스 및 가이드
-
-### 🚀 **주요 가이드**
-- **[AWS MSA 설정 가이드](docs/AWS_MSA_SETUP_GUIDE.md)** - AWS MSA 환경 구축
-- **[전체 DB 스키마](docs/COMPLETE_DB_SCHEMA.md)** - 데이터베이스 스키마 정의
-- **[API 문서](docs/API_DOCUMENTATION.md)** - 상세 API 명세
-- **[MSA 연동 가이드](docs/MSA_INTEGRATION.md)** - 서비스 간 연동 방법
-
-### 🔧 **배포 관련**
-- **[배포 가이드](docs/DEPLOYMENT_GUIDE.md)** - AWS ECS 배포 방법
-- **[프로덕션 배포 가이드](docs/PRODUCTION_DEPLOYMENT_GUIDE.md)** - 프로덕션 환경 설정
-- **[인프라 설정](docs/infrastructure-setup.md)** - AWS 인프라 설정
+**FOG Team** | 2025
