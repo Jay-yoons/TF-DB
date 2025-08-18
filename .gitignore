@@ -36,3 +36,11 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Frontend removal for backend-only branch ###
+frontend-sample/
+node_modules/
+package.json
+package-lock.json
+# Any stray TS files under backend java tree
+src/main/java/**/*.ts
