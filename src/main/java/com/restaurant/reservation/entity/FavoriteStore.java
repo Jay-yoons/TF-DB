@@ -3,6 +3,8 @@ package com.restaurant.reservation.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -34,6 +36,8 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class FavoriteStore {
     
     /**
@@ -74,9 +78,7 @@ public class FavoriteStore {
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    // Constructors
-    public FavoriteStore() {}
-    
+    // Custom constructors for partial fields
     public FavoriteStore(String userId, String storeId) {
         this.userId = userId;
         this.storeId = storeId;

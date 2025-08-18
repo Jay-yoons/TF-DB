@@ -1,6 +1,10 @@
 package com.restaurant.reservation.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 /**
  * 사용자 엔티티 클래스
@@ -20,6 +24,10 @@ import jakarta.persistence.*;
  */
 @Entity
 @Table(name = "USERS") // 데이터베이스 테이블명 지정
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
     
     /**
@@ -50,47 +58,4 @@ public class User {
      */
     @Column(name = "USER_LOCATION", length = 50)
     private String userLocation;
-    
-    // Constructors
-    public User() {}
-    
-    public User(String userId, String userName, String phoneNumber, String userLocation) {
-        this.userId = userId;
-        this.userName = userName;
-        this.phoneNumber = phoneNumber;
-        this.userLocation = userLocation;
-    }
-    
-    // Getters and Setters
-    public String getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-    
-    public String getUserName() {
-        return userName;
-    }
-    
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-    
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-    
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-    
-    public String getUserLocation() {
-        return userLocation;
-    }
-    
-    public void setUserLocation(String userLocation) {
-        this.userLocation = userLocation;
-    }
 } 
