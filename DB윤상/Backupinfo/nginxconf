@@ -1,0 +1,13 @@
+server {
+    listen 443 ssl;
+    server_name 13.124.123.215;
+
+    ssl_certificate     /etc/nginx/ssl/emexpress.crt;
+    ssl_certificate_key /etc/nginx/ssl/emexpress.key;
+
+    # CDB
+    location / {
+        proxy_pass https://127.0.0.1:5500;
+        proxy_ssl_verify off;
+    }
+}
