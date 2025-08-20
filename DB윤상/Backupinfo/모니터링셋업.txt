@@ -1,0 +1,19 @@
+모니터링 작업은 우선 EMPress ASHviewer ASH, AWR 와 Zabbix 를 사용할 예정
+
+용도
+EM Express
+GUI로 성능 모니터링 SQL 튜닝 목적
+
+ASH
+OracleDB 세션 샘플링 기록 성능 데이터
+어떤 SQL이 LOCK 걸렸는지 확인 가능
+
+ASH Viewer
+실시간 ASH 뷰어 GUI로 보기 쉽게 하는툴
+
+AWR
+선능 통계 스냅샷 저장하는 용도
+
+Zabbix
+OS 리소스 모니터링
+
