@@ -1,5 +1,7 @@
 package com.example.store.service.service;
 
+import com.example.store.service.entity.StoreNameMapping;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.store.service.entity.Store;
@@ -21,13 +23,25 @@ import java.util.stream.Collectors;
  * - 영업시간 문자열 파싱을 통한 현재 영업 상태 계산
  */
 @Service
+@Slf4j
 public class StoreService {
     private final StoreRepository repository;
     private final StoreSeatRepository storeSeatRepository;
+    private final com.example.store.service.repository.StoreLocationRepository storeLocationRepository;
 
-    public StoreService(StoreRepository repository, StoreSeatRepository storeSeatRepository) {
+    public StoreService(StoreRepository repository,
+                        StoreSeatRepository storeSeatRepository,
+                        com.example.store.service.repository.StoreLocationRepository storeLocationRepository) {
         this.repository = repository;
         this.storeSeatRepository = storeSeatRepository;
+        this.storeLocationRepository = storeLocationRepository;
+    }
+
+    @Transactional
+    public String getStoreName(String storeId) {
+        StoreNameMapping storeName = repository.findByStoreId(storeId);
+        log.info("storeNAme={}", storeName.getStoreName());
+        return storeName.getStoreName();
     }
 
     public List<Store> getAllStores() { return repository.findAll(); }
@@ -40,6 +54,11 @@ public class StoreService {
     public Store getStore(String storeId) {
         return repository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("Store not found"));
+    }
+
+    /** 위경도 조회 (없으면 null) */
+    public com.example.store.service.entity.StoreLocation getStoreLocation(String storeId) {
+        return storeLocationRepository.findByStoreId(storeId).orElse(null);
     }
 
     public Store saveStore(Store store) { return repository.save(store); }
@@ -78,29 +97,27 @@ public class StoreService {
         Store store = getStore(storeId);
         StoreSeat storeSeat = getStoreSeatInfo(storeId);
 
-        for (int retry = 0; retry < 3; retry++) {
-            int current = storeSeat.getInUsingSeat();
-            int next = current + delta;
+        int current = storeSeat.getInUsingSeat();
+        int next = current + delta;
 
-            if (next < 0) throw new IllegalArgumentException("사용중 좌석 수는 0 미만이 될 수 없습니다.");
-            if (next > store.getSeatNum()) throw new IllegalArgumentException("사용중 좌석 수가 전체 좌석 수를 초과할 수 없습니다.");
+        if (next < 0) throw new IllegalArgumentException("사용중 좌석 수는 0 미만이 될 수 없습니다.");
+        if (next > store.getSeatNum()) throw new IllegalArgumentException("사용중 좌석 수가 전체 좌석 수를 초과할 수 없습니다.");
 
-            storeSeat.setInUsingSeat(next);
-            try {
-                storeSeatRepository.saveAndFlush(storeSeat);
-                return store.getSeatNum() - next;
-            } catch (org.springframework.dao.OptimisticLockingFailureException e) {
-                storeSeat = storeSeatRepository.findByStoreId(storeId).orElseThrow();
-            }
-        }
-        throw new IllegalStateException("좌석 증감 처리 중 충돌이 발생했습니다. 다시 시도해주세요.");
+        storeSeat.setInUsingSeat(next);
+        storeSeatRepository.saveAndFlush(storeSeat);
+        return store.getSeatNum() - next;
     }
 
     // ===================== 영업시간 판단 로직 =====================
 
     /** 현재(Asia/Seoul) 기준 영업중 여부. */
     public boolean isOpenNow(Store store) {
-        return isOpenAt(store.getServiceTime(), LocalTime.now(ZoneId.of("Asia/Seoul")));
+        LocalTime now = LocalTime.now(ZoneId.of("Asia/Seoul"));
+        // OPEN/CLOSE 값이 모두 있을 때만 판단, 없으면 영업상태 판단 불가(false)
+        if (store.getOpenTime() != null && store.getCloseTime() != null) {
+            return isOpenAt(store.getOpenTime(), store.getCloseTime(), now);
+        }
+        return false;
     }
 
     /** 현재 상태 라벨 ("영업중"/"영업종료"). */
@@ -108,81 +125,17 @@ public class StoreService {
         return isOpenNow(store) ? "영업중" : "영업종료";
     }
 
-    /**
-     * 지원 포맷:
-     * - "HH:mm~HH:mm"
-     * - "HH:mm~HH:mm, HH:mm~HH:mm" (다중 구간)
-     * - 심야: 종료 < 시작 (예: "22:00~02:00")
-     * - 종료가 "24:00"이면 당일 끝까지 영업 (예: "06:00~24:00")
-     */
-    boolean isOpenAt(String serviceTime, LocalTime now) {
-        if (serviceTime == null || serviceTime.isBlank()) return false;
-        List<TimeRange> ranges = parseRanges(serviceTime);
-        for (TimeRange r : ranges) {
-            if (r.contains(now)) return true;
-        }
-        return false;
-    }
-
-    private List<TimeRange> parseRanges(String serviceTime) {
-        String[] parts = serviceTime.split(",");
-        List<TimeRange> ranges = new ArrayList<>();
-        for (String part : parts) {
-            String p = part.trim();
-            if (p.isEmpty()) continue;
-            String[] se = p.split("~");
-            if (se.length != 2) continue;
-
-            String startRaw = se[0].trim();
-            String endRaw = se[1].trim();
-
-            LocalTime start = parseTimeSafe(startRaw);     // 시작에 24:00은 허용하지 않음
-            boolean endIs24 = "24:00".equals(endRaw);      // 종료가 24:00인지
-            LocalTime end = endIs24 ? LocalTime.MIDNIGHT : parseTimeSafe(endRaw);
-
-            if (start != null && (endIs24 || end != null)) {
-                ranges.add(new TimeRange(start, end, endIs24));
-            }
-        }
-        return ranges;
-    }
-
-    private LocalTime parseTimeSafe(String hhmm) {
-        try {
-            String[] tokens = hhmm.split(":");
-            int h = Integer.parseInt(tokens[0]);
-            int m = Integer.parseInt(tokens[1]);
-            if (h == 24 && m == 0) return LocalTime.MIDNIGHT; // 24:00 표현 보조
-            if (h < 0 || h > 23 || m < 0 || m > 59) return null;
-            return LocalTime.of(h, m);
-        } catch (Exception e) {
-            return null;
+    /** 단일 구간(open~close) 기준 영업중 여부 계산. 24시간/심야 구간 포함 */
+    boolean isOpenAt(LocalTime open, LocalTime close, LocalTime now) {
+        if (open == null || close == null) return false;
+        if (open.equals(close)) return true; // 24시간
+        if (close.isAfter(open)) {
+            return !now.isBefore(open) && now.isBefore(close);
+        } else {
+            // 심야 구간 (예: 22:00~02:00)
+            return !now.isBefore(open) || now.isBefore(close);
         }
     }
 
-    static class TimeRange {
-        final LocalTime start;
-        final LocalTime end;   // endIs24=true면 자정이지만 "당일 끝" 의미
-        final boolean endIs24;
-
-        TimeRange(LocalTime s, LocalTime e, boolean endIs24) {
-            this.start = s;
-            this.end = e;
-            this.endIs24 = endIs24;
-        }
-
-        boolean contains(LocalTime now) {
-            if (endIs24) {
-                // 24:00까지: now >= start 면 영업중
-                return !now.isBefore(start);
-            }
-            if (start.equals(end)) return false;
-            if (end.isAfter(start)) {
-                return !now.isBefore(start) && now.isBefore(end);
-            } else {
-                // 심야 구간
-                return !now.isBefore(start) || now.isBefore(end);
-            }
-        }
-    }
+    // service_time 문자열 파서 제거: OPEN_TIME/CLOSE_TIME 컬럼만 사용합니다.
 }

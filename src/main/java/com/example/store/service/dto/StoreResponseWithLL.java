@@ -1,10 +1,7 @@
 package com.example.store.service.dto;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.persistence.Column;
+import lombok.*;
 import java.time.LocalTime;
 
 /**
@@ -24,7 +21,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StoreResponse {
+public class StoreResponseWithLL {
     private String storeId;
     private String storeName;
     private Integer categoryCode;
@@ -39,13 +36,16 @@ public class StoreResponse {
     private String imageUrl; // S3 공개 URL 또는 프록시 URL
     private java.util.List<String> imageUrls; // 다중 이미지 지원
 
+    private String longitude; // 경도
+    private String latitude; // 위도
+
     // 추가 필드: 현재 영업 상태
     private Boolean openNow;    // true: 영업중, false/null: 종료/정보없음
     private String openStatus;  // "영업중" / "영업종료"
 
-    public static StoreResponse fromEntity(com.example.store.service.entity.Store store) {
+    public static StoreResponseWithLL fromEntity(com.example.store.service.entity.Store store) {
         com.example.store.service.entity.Category category = com.example.store.service.entity.Category.fromCode(store.getCategoryCode());
-        return StoreResponse.builder()
+        return StoreResponseWithLL.builder()
                 .storeId(store.getStoreId())
                 .storeName(store.getStoreName())
                 .categoryCode(store.getCategoryCode())
@@ -54,12 +54,13 @@ public class StoreResponse {
                 .seatNum(store.getSeatNum())
                 .openTime(store.getOpenTime())
                 .closeTime(store.getCloseTime())
+                .serviceTime(store.getServiceTime())
                 .build();
     }
 
     // (선택) 좌석 정보까지 포함하는 변환 메서드
-    public static StoreResponse fromEntityWithSeats(com.example.store.service.entity.Store store, int availableSeats) {
-        StoreResponse response = fromEntity(store);
+    public static StoreResponseWithLL fromEntityWithSeats(com.example.store.service.entity.Store store, int availableSeats) {
+        StoreResponseWithLL response = fromEntity(store);
         response.setAvailableSeats(availableSeats);
         return response;
     }

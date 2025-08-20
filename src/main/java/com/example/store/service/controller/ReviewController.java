@@ -4,6 +4,7 @@ import com.example.store.service.dto.ReviewDto;
 import com.example.store.service.dto.ReviewRequestDto;
 import com.example.store.service.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reviews")
+@Slf4j
 public class ReviewController {
 
     private final ReviewService reviewService;
@@ -51,12 +53,15 @@ public class ReviewController {
     // 리뷰 단건
     @GetMapping("/{id}")
     public ReviewDto getReview(@PathVariable Long id) {
+        log.info("리뷰 단건 컨트롤러");
         return reviewService.getReview(id);
     }
 
     // 리뷰 작성
     @PostMapping
     public ReviewDto createReview(@AuthenticationPrincipal Jwt jwt, @RequestBody ReviewRequestDto dto) {
+        log.info("리뷰 작성 컨트롤러");
+
         String userId = jwt.getClaimAsString("sub");
         return reviewService.createReview(userId, dto);
     }

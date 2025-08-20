@@ -1,5 +1,6 @@
 package com.example.store.service.repository;
 
+import com.example.store.service.entity.StoreNameMapping;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.store.service.entity.Store;
 import java.util.List;
@@ -26,4 +27,7 @@ public interface StoreRepository extends JpaRepository<Store, String> {
 	 * @return 해당 카테고리의 매장 목록
 	 */
 	List<Store> findByCategoryCode(Integer categoryCode);
+
+	StoreNameMapping findByStoreId(String storeId);
+
 }

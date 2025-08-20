@@ -1,6 +1,8 @@
 package com.example.store.service.controller;
 
+import com.example.store.service.dto.StoreResponseWithLL;
 import com.example.store.service.entity.StoreSeat;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import com.example.store.service.entity.Store;
 import com.example.store.service.service.StoreService;
@@ -22,6 +24,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/stores")
+@Slf4j
 public class StoreController {
 
     private final StoreService service;
@@ -34,14 +37,28 @@ public class StoreController {
         this.reviewService = reviewService;
     }
 
+    //가게 이름 가져오기 - 추가
+    @GetMapping("/{storeId}/name")
+    public String getStoreName(@PathVariable String storeId) {
+        log.info("가게 이름 컨트롤러, 가게id={}", storeId);
+        return service.getStoreName(storeId);
+    }
+
     /** 가게 목록 API (옵션: categoryCode로 필터링) */
     @GetMapping
-    public List<StoreResponse> listStores(@RequestParam(value = "categoryCode", required = false) Integer categoryCode) {
+    public List<StoreResponseWithLL> listStores(@RequestParam(value = "categoryCode", required = false) Integer categoryCode) {
+        log.info("가게 목록 컨트롤러");
         return service.getStoresByCategoryCode(categoryCode).stream()
                 .map(store -> {
-                    StoreResponse r = StoreResponse.fromEntity(store);
+                    StoreResponseWithLL r = StoreResponseWithLL.fromEntity(store);
                     r.setImageUrl(imageService.getImageUrl(r.getStoreId()));
                     r.setImageUrls(imageService.listImageUrls(r.getStoreId(), 10));
+                    // 위경도: STORE_LOCATION에서 조회
+                    com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(r.getStoreId());
+                    if (loc != null) {
+                        r.setLongitude(loc.getLongitude());
+                        r.setLatitude(loc.getLatitude());
+                    }
                     // 영업 상태 세팅
                     r.setOpenNow(service.isOpenNow(store));
                     r.setOpenStatus(service.openStatus(store));
@@ -52,12 +69,19 @@ public class StoreController {
 
     /** 가게 상세 API */
     @GetMapping("/{storeId}")
-    public StoreResponse storeDetail(@PathVariable String storeId) {
+    public StoreResponseWithLL storeDetail(@PathVariable String storeId) {
+        log.info("가게 상세 컨트롤러");
         Store store = service.getStore(storeId);
         int availableSeats = service.getAvailableSeats(storeId);
-        StoreResponse response = StoreResponse.fromEntityWithSeats(store, availableSeats);
+        StoreResponseWithLL response = StoreResponseWithLL.fromEntityWithSeats(store, availableSeats);
         response.setImageUrl(imageService.getImageUrl(response.getStoreId()));
         response.setImageUrls(imageService.listImageUrls(response.getStoreId(), 10));
+        // 위경도: STORE_LOCATION에서 조회
+        com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(response.getStoreId());
+        if (loc != null) {
+            response.setLongitude(loc.getLongitude());
+            response.setLatitude(loc.getLatitude());
+        }
         // 영업 상태 세팅
         response.setOpenNow(service.isOpenNow(store));
         response.setOpenStatus(service.openStatus(store));
@@ -67,10 +91,14 @@ public class StoreController {
     /** 가게 위치(위경도) 전용 API */
     @GetMapping("/{storeId}/location")
     public Map<String, String> getStoreLocation(@PathVariable String storeId) {
-        Store store = service.getStore(storeId);
+        log.info("위경도 컨트롤러");
+        com.example.store.service.entity.StoreLocation loc = service.getStoreLocation(storeId);
+        if (loc == null) {
+            throw new IllegalArgumentException("위치 정보가 없습니다.");
+        }
         return Map.of(
-                "latitude", store.getLatitude(),
-                "longitude", store.getLongitude()
+                "latitude", loc.getLatitude(),
+                "longitude", loc.getLongitude()
         );
     }
 

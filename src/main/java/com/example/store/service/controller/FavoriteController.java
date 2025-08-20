@@ -5,6 +5,7 @@ package com.example.store.service.controller;
 import com.example.store.service.entity.FavStore;
 import com.example.store.service.service.FavoriteService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/favorites")
+@Slf4j
 public class FavoriteController {
 
     private final FavoriteService favoriteService;
@@ -41,6 +43,7 @@ public class FavoriteController {
     // [조회] 즐겨찾기 여부(단건)
     @GetMapping("/status")
     public java.util.Map<String, Boolean> isFavorite(@AuthenticationPrincipal Jwt jwt, @RequestParam String storeId) {
+        log.info("즐겨찾기 여부 컨트롤러");
         String userId = jwt.getClaimAsString("sub");
         boolean val = favoriteService.isFavorite(userId, storeId);
         return java.util.Collections.singletonMap("isFavorite", val);

@@ -16,7 +16,7 @@ import java.util.Map;
 @RequestMapping("/api/config")
 public class ConfigController {
 
-    /** application.properties 에 정의된 Google Maps API Key. */
+    /** application.yml 에 정의된 Google Maps API Key. */
     @Value("${google.maps.api.key:}")
     private String googleMapsApiKey;
 
