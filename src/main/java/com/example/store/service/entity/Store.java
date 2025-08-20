@@ -39,8 +39,4 @@ public class Store {
 
     @Column(name = "CLOSE_TIME")
     private LocalTime closeTime;
-
-    @Column(name = "SERVICE_TIME", length = 50)
-    @Deprecated
-    private String serviceTime; // 기존 문자열 포맷 (폴백용)
 }

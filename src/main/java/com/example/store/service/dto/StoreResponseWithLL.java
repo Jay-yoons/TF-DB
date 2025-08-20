@@ -54,7 +54,6 @@ public class StoreResponseWithLL {
                 .seatNum(store.getSeatNum())
                 .openTime(store.getOpenTime())
                 .closeTime(store.getCloseTime())
-                .serviceTime(store.getServiceTime())
                 .build();
     }
 

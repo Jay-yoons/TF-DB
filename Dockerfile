@@ -4,13 +4,14 @@
 #   docker build --build-arg JAR_FILE=build/libs/app.jar -t my-backend .
 #   docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod my-backend
 
+
 FROM openjdk:17-jdk-slim
 
 # 컨테이너 내부 작업 디렉토리
 WORKDIR /app
 
 # 빌드시 전달할 JAR 파일 경로(기본: app.jar)
-ARG JAR_FILE=app.jar
+ARG JAR_FILE=build/libs/*.jar
 
 # 빌드 산출물 JAR 복사
 COPY ${JAR_FILE} /app/app.jar
