@@ -42,3 +42,101 @@
   저장 위치별 권한 관리 및 암호화 적용 권장
   전송 시 네트워크 보안(예: VPN, SSL) 적용 필요
 
+
+아래)
+스크립트
+
+#!/bin/bash
+export ORACLE_HOME=/u01/app/oracle/product/19.0.0/dbhome_1
+export ORACLE_SID=ORCL
+export PATH=$ORACLE_HOME/bin:$PATH
+
+DAY=$(date +%a)   # 요일 추출 (Sun, Mon, Tue...)
+
+LOGDIR=/backup/log
+mkdir -p $LOGDIR
+
+case $DAY in
+  Sun) SCRIPT=/backup/rman_backup_sun.rman ;;
+  Mon) SCRIPT=/backup/rman_backup_mon.rman ;;
+  Tue) SCRIPT=/backup/rman_backup_tue.rman ;;
+  Wed) SCRIPT=/backup/rman_backup_wed.rman ;;
+  Thu) SCRIPT=/backup/rman_backup_thu.rman ;;
+  Fri) SCRIPT=/backup/rman_backup_fri.rman ;;
+  Sat) SCRIPT=/backup/rman_backup_sat.rman ;;
+esac
+
+rman target / cmdfile=$SCRIPT log=$LOGDIR/rman_${DAY}.log
+
+
+
+
+일요일 (레벨 0 풀백업)
+BACKUP INCREMENTAL LEVEL 0 DATABASE TAG 'FULL_SUNDAY';
+
+RUN {
+  CONFIGURE CONTROLFILE AUTOBACKUP ON;
+  BACKUP INCREMENTAL LEVEL 0 DATABASE PLUS ARCHIVELOG TAG 'FULL_SUN'
+    FORMAT '/backup/rman/full_sun_%U.bkp';
+}
+
+
+월요일 (레벨 1 차등 증분 백업)
+BACKUP INCREMENTAL LEVEL 1 DATABASE TAG 'DIFF_MON';
+RUN {
+  BACKUP INCREMENTAL LEVEL 1 DATABASE PLUS ARCHIVELOG TAG 'DIFF_MON'
+    FORMAT '/backup/rman/diff_mon_%U.bkp';
+}
+
+
+
+
+화요일 (레벨 1 누적 증분 백업)
+BACKUP INCREMENTAL LEVEL 1 CUMULATIVE DATABASE TAG 'CUM_TUE';
+
+RUN {
+  BACKUP INCREMENTAL LEVEL 1 CUMULATIVE DATABASE PLUS ARCHIVELOG TAG 'CUM_TUE'
+    FORMAT '/backup/rman/cum_tue_%U.bkp';
+}
+
+
+수요일 (레벨 1 차등 증분 백업)
+BACKUP INCREMENTAL LEVEL 1 DATABASE TAG 'DIFF_WED';
+
+BACKUP INCREMENTAL LEVEL 1 DATABASE TAG 'DIFF_WED';
+RUN {
+  BACKUP INCREMENTAL LEVEL 1 DATABASE PLUS ARCHIVELOG TAG 'DIFF_WED'
+    FORMAT '/backup/rman/diff_wed_%U.bkp';
+}
+
+
+목요일 (레벨 1 차등 증분 백업)
+BACKUP INCREMENTAL LEVEL 1 DATABASE TAG 'DIFF_THU';
+
+RUN {
+  BACKUP INCREMENTAL LEVEL 1 DATABASE PLUS ARCHIVELOG TAG 'DIFF_THU'
+    FORMAT '/backup/rman/diff_THU_%U.bkp';
+}
+
+금요일 (레벨 1 누적 증분 백업)
+BACKUP INCREMENTAL LEVEL 1 CUMULATIVE DATABASE TAG 'CUM_FRI';
+
+RUN {
+  BACKUP INCREMENTAL LEVEL 1 DATABASE PLUS ARCHIVELOG TAG 'CUM_FRI'
+    FORMAT '/backup/rman/cum_fri_%U.bkp';
+}
+
+
+토요일 (레벨 1 차등 증분 백업)
+BACKUP INCREMENTAL LEVEL 1 DATABASE TAG 'DIFF_SAT';
+
+RUN {
+  BACKUP INCREMENTAL LEVEL 1 DATABASE PLUS ARCHIVELOG TAG 'DIFF_SAT'
+    FORMAT '/backup/rman/diff_sat_%U.bkp';
+}
+-----------------------------------------------------------------
+
+CRON
+0 2 * * * /backup/run_rman.sh
+
+
