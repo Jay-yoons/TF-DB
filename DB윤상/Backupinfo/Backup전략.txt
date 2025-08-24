@@ -139,4 +139,19 @@ RUN {
 CRON
 0 2 * * * /backup/run_rman.sh
 
+RMAN 보존 정책 7일 설정
+CONFIGURE RETENTION POLICY TO RECOVERY WINDOW OF 7 DAYS;
+
+
+0 3 * * * /backup/run_rman_arch.sh
+
+RUN {
+  BACKUP ARCHIVELOG ALL
+    FORMAT '/backup/rman/arch/%d_ARCH_%T_%U.bkp'
+    DELETE INPUT;
+  DELETE NOPROMPT OBSOLETE;
+}
+
+
+
 
