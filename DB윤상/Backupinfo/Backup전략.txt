@@ -152,6 +152,25 @@ RUN {
   DELETE NOPROMPT OBSOLETE;
 }
 
+23일에 돌려야 될것
+
+s3://fogdb-backup-bucket/rman/
+
+
+
+#!/bin/bash
+BACKUPDIR=/backup/rman
+S3_BUCKET=s3://my-backup-bucket/rman/
+
+# 7일 지난 파일만 S3 업로드
+find $BACKUPDIR -type f -mtime +6 -name '*.bkp' | while read file; do
+    aws s3 cp "$file" $S3_BUCKET
+    if [ $? -eq 0 ]; then
+        # 업로드 성공 시 로컬 삭제
+        rm -f "$file"
+    fi
+done
+
 
 
 
