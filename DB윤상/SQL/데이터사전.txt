@@ -13,18 +13,12 @@ STATE_NAME: 예약 상태 이름
 COUNT: 예약한 인원 수
 STORE_LOCATION: 가게 위치
 SEAT_NUM: 전체 좌석 수
-IN_USING_SEAT: 사용중인 좌석 수
-SERVICE_TIME: 영업시간
-MENU_NAME: 메뉴 이름
-PRICE: 메뉴 가격
+OPEN_TIME: 가게 서비스 시작 시간
+CLOSE_TIME: 가게 서비스 종료 시간
 COMMENT: 후기 내용
 SCORE: 평점 (1~10점)
 REVIEW_ID: REVIEW의 주식별자
 CATEGORY_CODE: 카테고리 모아두는 코드
 CATEGORY_NAME: 카테고리 이름
-PASSWORD: 유저 비밀번호
 LONGITUDE 경도
 LATITUDE 위도
-
-테이블
-_MV, VIEW: 외래키의 물리적인 뷰입니다.
