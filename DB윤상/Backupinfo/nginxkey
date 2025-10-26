@@ -1,6 +1,0 @@
-sudo mkdir -p /etc/nginx/ssl
-sudo openssl req -x509 -nodes -days 365 \
-  -newkey rsa:2048 \
-  -keyout /etc/nginx/ssl/emexpress.key \
-  -out /etc/nginx/ssl/emexpress.crt \
-  -subj "/C=KR/ST=Seoul/L=Seoul/O=TestOrg/OU=DBA/CN=127.0.0.1"
